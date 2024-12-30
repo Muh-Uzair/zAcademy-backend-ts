@@ -13,7 +13,12 @@ export default [
   ...tseslint.configs.recommended,
   {
     rules: {
-      "no-unused-vars": "error",
+      "no-unused-vars": [
+        "error",
+        {
+          varsIgnorePattern: "^req$|^res$|^next$",
+        },
+      ],
       "no-console": ["warn", { allow: ["warn", "error"] }],
       "no-undef": "error",
     },
