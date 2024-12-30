@@ -4,17 +4,14 @@ import mongoose from "mongoose";
 
 dotenv.config({ path: "./config.env" });
 
-// eslint-disable-next-line no-undef
-const processEnv = process.env;
-
 // connecting to remote DB _____________________________________
-if (!processEnv.DB_CONNECTION_STRING_REMOTE || !processEnv.DB_PASSWORD) {
+if (!process.env.DB_CONNECTION_STRING_REMOTE || !process.env.DB_PASSWORD) {
   throw new Error("Missing required environment variables.");
 }
 
-const dbConnectionString = processEnv.DB_CONNECTION_STRING_REMOTE.replace(
+const dbConnectionString = process.env.DB_CONNECTION_STRING_REMOTE.replace(
   "<DB_PASSWORD>",
-  processEnv.DB_PASSWORD,
+  process.env.DB_PASSWORD,
 );
 
 mongoose
@@ -23,6 +20,6 @@ mongoose
 
 //___________________________
 
-app.listen(processEnv.PORT || 3000, () => {
-  console.log(`Server is listening on port ${processEnv.PORT || 3000}`);
+app.listen(process.env.PORT || 3000, () => {
+  console.log(`Server is listening on port ${process.env.PORT || 3000}`);
 });
