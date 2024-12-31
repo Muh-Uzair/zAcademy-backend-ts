@@ -91,3 +91,5 @@ const courseSchema = new Schema<CourseInterface>(
 const CourseModel = model<CourseInterface>("Course", courseSchema);
 
 export { CourseModel, CourseInterface };
+
+// course schema
