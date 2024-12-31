@@ -171,11 +171,17 @@ export const updateCourseById = async (
 
 // FUNCTION
 export const deleteCourseById = async (
-  res: Response,
   req: Request,
+  res: Response,
 ): Promise<void> => {
   try {
     await CourseModel.deleteOne({ id: Number(req.params.id) });
+
+    res.status(204).json({
+      status: "success",
+      message: `deleted course with id ${req.params.id}`,
+      data: null,
+    });
   } catch (error: unknown) {
     if (error instanceof Error) {
       res.status(500).json({

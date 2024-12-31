@@ -25,7 +25,8 @@ if (!process.env.DB_CONNECTION_STRING_LOCAL) {
 
 const dbConnectionString = process.env.DB_CONNECTION_STRING_LOCAL;
 
-console.log(process.env.NODE_ENV);
+const currentTimestamp = Date.now();
+console.log(currentTimestamp);
 
 mongoose
   .connect(dbConnectionString)
