@@ -1,8 +1,8 @@
 import dotenv from "dotenv";
+dotenv.config({ path: "./config.env" });
 import mongoose from "mongoose";
 import fs from "fs";
 import { CourseInterface, CourseModel } from "../models/courses-model";
-dotenv.config({ path: "./config.env" });
 
 // 1 : read all the data from the file
 const allCourses: CourseInterface[] = JSON.parse(

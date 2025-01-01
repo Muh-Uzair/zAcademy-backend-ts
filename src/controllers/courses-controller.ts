@@ -7,12 +7,57 @@ export const getAllCourses = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const data: CourseInterface[] = await CourseModel.find();
+    // 1 : building
+
+    console.log("Raw query object");
+    console.log(req.query);
+
+    // --->
+    // creating an empty query object
+    let queryURLObj: Record<string, string | number | object> = {};
+
+    // remove any undefined or those 4 words from query query object
+    Object.entries(req.query).forEach(([key, val]) => {
+      if (
+        val !== undefined &&
+        val !== "" &&
+        key !== "sort" &&
+        key !== "field" &&
+        key !== "limit" &&
+        key !== "page"
+      ) {
+        queryURLObj[key] = val;
+      }
+    });
+    console.log(
+      "After removing sort, field, limit, page etc from the raw query object",
+    );
+    console.log(queryURLObj);
+
+    // advance filtering for eg {lte} {gte} {lt} {gt}
+    let queryURLSt = JSON.stringify(queryURLObj);
+    queryURLSt = queryURLSt.replace(
+      /\b(gte|gt|lte|lt)\b/g,
+      (match) => `$${match}`,
+    );
+
+    queryURLObj = JSON.parse(queryURLSt);
+
+    console.log(queryURLObj);
+
+    // --->
+    const queryObj = CourseModel.find(queryURLObj).exec();
+
+    // 2 : executing query
+    const courses: CourseInterface[] = await queryObj;
+
+    // 3 : sending response
 
     res.status(200).json({
       status: "success",
-
-      data,
+      data: {
+        courses,
+      },
     });
   } catch (error: unknown) {
     if (error instanceof Error) {
