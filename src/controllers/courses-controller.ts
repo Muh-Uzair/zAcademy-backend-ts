@@ -38,16 +38,25 @@ export const getAllCourses = async (
     queryURLObj = JSON.parse(queryURLSt);
 
     // --->
-    const queryObj: Query<CourseInterface[], CourseInterface> =
+    const query: Query<CourseInterface[], CourseInterface> =
       CourseModel.find(queryURLObj);
 
+    if (req.query.sort) {
+      const sortingOptionsArr: string[] =
+        typeof req.query.sort === "string" ? req.query.sort.split(",") : [];
+      query.sort(sortingOptionsArr.join(" "));
+    } else {
+      query.sort("createdAt");
+    }
+
     // 2 : executing query
-    const courses: CourseInterface[] = await queryObj;
+    const courses: CourseInterface[] = await query;
 
     // 3 : sending response
 
     res.status(200).json({
       status: "success",
+      results: courses.length,
       data: {
         courses,
       },
