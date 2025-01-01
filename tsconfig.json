@@ -2,12 +2,13 @@
   "compilerOptions": {
     "target": "ES6",
     "module": "commonjs",
+    "moduleResolution": "node",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist"
   },
-  "include": ["**/*.ts"],
+  "include": ["**/*.ts", "dummy.js"],
   "exclude": ["node_modules"]
 }

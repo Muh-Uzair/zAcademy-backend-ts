@@ -17,16 +17,13 @@ dotenv.config({ path: "./config.env" });
 // mongoose
 //   .connect(dbConnectionString)
 //   .then(() => console.log("connection to db success"));
-// //___________________________
 
+// //___________________________
 if (!process.env.DB_CONNECTION_STRING_LOCAL) {
   throw new Error("Missing required environment variables.");
 }
 
 const dbConnectionString = process.env.DB_CONNECTION_STRING_LOCAL;
-
-const currentTimestamp = Date.now();
-console.log(currentTimestamp);
 
 mongoose
   .connect(dbConnectionString)
@@ -34,5 +31,7 @@ mongoose
 //___________________________
 
 app.listen(process.env.PORT || 3000, () => {
-  console.log(`Server is listening on port ${process.env.PORT || 3000}`);
+  console.log(
+    `Server is listening on port ${process.env.PORT || 3000} | request to 127.0.0.1:3000`,
+  );
 });
