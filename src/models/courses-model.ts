@@ -20,6 +20,7 @@ const courseSchema = new Schema<CourseInterface>(
     createdAt: {
       type: Date,
       default: Date.now(),
+      select: false,
     },
     coverImage: {
       type: String,

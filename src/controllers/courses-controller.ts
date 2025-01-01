@@ -20,7 +20,7 @@ export const getAllCourses = async (
         val !== undefined &&
         val !== "" &&
         key !== "sort" &&
-        key !== "field" &&
+        key !== "fields" &&
         key !== "limit" &&
         key !== "page"
       ) {
@@ -38,15 +38,37 @@ export const getAllCourses = async (
     queryURLObj = JSON.parse(queryURLSt);
 
     // --->
-    const query: Query<CourseInterface[], CourseInterface> =
+    let query: Query<CourseInterface[], CourseInterface> =
       CourseModel.find(queryURLObj);
 
+    // implement sorting
     if (req.query.sort) {
       const sortingOptionsArr: string[] =
         typeof req.query.sort === "string" ? req.query.sort.split(",") : [];
-      query.sort(sortingOptionsArr.join(" "));
+      query = query.sort(sortingOptionsArr.join(" "));
     } else {
-      query.sort("createdAt");
+      query = query.sort("createdAt");
+    }
+
+    // field projection , sending some fields and not sending some fields
+    if (req.query.fields) {
+      query = query.select(req.query.fields.toString().split(",").join(" "));
+    } else {
+      query = query.select("-__v -updatedAt");
+    }
+
+    // pagination
+    if (req.query.page) {
+      const page: number = Number(req.query.page);
+      const limit: number = 4;
+      const skip: number = (page - 1) * limit;
+
+      const totalCourses: number = await CourseModel.countDocuments();
+      if (skip >= totalCourses) {
+        throw new Error("This page does not exist");
+      }
+
+      query = query.skip(skip).limit(limit);
     }
 
     // 2 : executing query
