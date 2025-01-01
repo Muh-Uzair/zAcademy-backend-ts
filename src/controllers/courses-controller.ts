@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { CourseInterface, CourseModel } from "../models/courses-model";
+import { Query } from "mongoose";
 
 // FUNCTION
 export const getAllCourses = async (
@@ -8,9 +9,6 @@ export const getAllCourses = async (
 ): Promise<void> => {
   try {
     // 1 : building
-
-    console.log("Raw query object");
-    console.log(req.query);
 
     // --->
     // creating an empty query object
@@ -29,13 +27,9 @@ export const getAllCourses = async (
         queryURLObj[key] = val;
       }
     });
-    console.log(
-      "After removing sort, field, limit, page etc from the raw query object",
-    );
-    console.log(queryURLObj);
 
     // advance filtering for eg {lte} {gte} {lt} {gt}
-    let queryURLSt = JSON.stringify(queryURLObj);
+    let queryURLSt: string = JSON.stringify(queryURLObj);
     queryURLSt = queryURLSt.replace(
       /\b(gte|gt|lte|lt)\b/g,
       (match) => `$${match}`,
@@ -43,10 +37,9 @@ export const getAllCourses = async (
 
     queryURLObj = JSON.parse(queryURLSt);
 
-    console.log(queryURLObj);
-
     // --->
-    const queryObj = CourseModel.find(queryURLObj).exec();
+    const queryObj: Query<CourseInterface[], CourseInterface> =
+      CourseModel.find(queryURLObj);
 
     // 2 : executing query
     const courses: CourseInterface[] = await queryObj;
