@@ -57,6 +57,11 @@ export const getAllCourses = async (
       query = query.select("-__v -updatedAt");
     }
 
+    if (req.query.limit) {
+      const limit: number = Number(req.query.limit);
+      query = query.limit(limit);
+    }
+
     // pagination
     if (req.query.page) {
       const page: number = Number(req.query.page);
@@ -264,4 +269,43 @@ export const deleteCourseById = async (
       });
     }
   }
+};
+
+// FUNCTION
+export const aliasTop5Courses = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  //?limit=5&sort=-ratingsAverage
+
+  req.query.limit = "5";
+  req.query.sort = "-ratingsAverage";
+
+  console.log(req.query);
+
+  next();
+};
+
+export const aliasTop5Cheapest = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  req.query.limit = "5";
+  req.query.sort = "price";
+
+  next();
+};
+
+// FUNCTION
+export const aliasTop5Longest = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  req.query.limit = "5";
+  req.query.sort = "-duration";
+
+  next();
 };
