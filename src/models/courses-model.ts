@@ -74,7 +74,7 @@ const courseSchema = new Schema<CourseInterface>(
       type: Number,
       default: 0,
       min: [0, "Average rating of course should not be less than 0"],
-      max: [10, "Average rating should not exceed 10"],
+      max: [5, "Average rating should not exceed 5"],
     },
     ratingsQuantity: {
       type: Number,

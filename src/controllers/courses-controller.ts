@@ -209,11 +209,96 @@ export const deleteCourseById = async (
 };
 
 // FUNCTION
+export const getCoursesStats = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const courses = await CourseModel.aggregate([
+      {
+        $group: {
+          _id: "$difficulty",
+          totalDocsScanned: { $sum: 1 },
+          avgPrice: { $avg: "$price" },
+          averageRating: { $avg: "$averageRating" },
+          averageDuration: { $avg: "$duration" },
+          ratingsQuantity: { $avg: "$ratingsQuantity" },
+        },
+      },
+      {
+        $sort: { avgPrice: 1 },
+      },
+    ]);
+    res.status(200).json({
+      status: "success",
+      data: {
+        courses,
+      },
+    });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      res.status(500).json({
+        status: "fail",
+        message: error.message,
+      });
+    } else {
+      res.status(500).json({
+        status: "fail",
+        message: "An unexpected error has occurred",
+      });
+    }
+  }
+};
+
+// FUNCTION
+export const getBestCourse = async (req: Request, res: Response) => {
+  try {
+    const data = await CourseModel.aggregate([
+      {
+        $group: {
+          _id: "$averageRating",
+          name: { $first: "$name" },
+          instructor: { $first: "$instructor" },
+          averageRating: { $first: "$averageRating" },
+        },
+      },
+      {
+        $sort: { averageRating: -1 },
+      },
+      {
+        $project: { name: 1, instructor: 1, averageRating: 1, _id: 0 },
+      },
+      {
+        $limit: 1,
+      },
+    ]);
+    res.status(200).json({
+      status: "success",
+      data: {
+        data,
+      },
+    });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      res.status(500).json({
+        status: "fail",
+        message: error.message,
+      });
+    } else {
+      res.status(500).json({
+        status: "fail",
+        message: "An unexpected error has occurred",
+      });
+    }
+  }
+};
+
+// FUNCTION
 export const aliasTop5Courses = (
   req: Request,
   res: Response,
   next: NextFunction,
-) => {
+): void => {
   //?limit=5&sort=-ratingsAverage
 
   req.query.limit = "5";
@@ -227,7 +312,7 @@ export const aliasTop5Cheapest = (
   req: Request,
   res: Response,
   next: NextFunction,
-) => {
+): void => {
   req.query.limit = "5";
   req.query.sort = "price";
 
@@ -239,7 +324,7 @@ export const aliasTop5Longest = (
   req: Request,
   res: Response,
   next: NextFunction,
-) => {
+): void => {
   req.query.limit = "5";
   req.query.sort = "-duration";
 
