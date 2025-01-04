@@ -107,9 +107,24 @@ courseSchema.virtual("durationMins").get(function (): number {
 // document middleware
 courseSchema.pre("save", async function (next): Promise<void> {
   const totalDocuments = await this.model("Course").countDocuments();
-
   this.id = totalDocuments + 1;
+  next();
+});
 
+courseSchema.post("save", function (doc, next): void {
+  console.log("Document saved successfully");
+  console.log(doc);
+  next();
+});
+
+// query middle ware
+courseSchema.pre("countDocuments", function (next): void {
+  console.log("Running before countDocuments query middleware");
+  next();
+});
+
+courseSchema.post("countDocuments", function (doc, next): void {
+  console.log("Running after countDocuments query middleware");
   next();
 });
 
