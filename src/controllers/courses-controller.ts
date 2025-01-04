@@ -61,8 +61,8 @@ export const createCourse = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  const newCreatedCourse = await CourseModel.create(req.body);
   try {
+    const newCreatedCourse = await CourseModel.create(req.body);
     res.status(201).json({
       status: "success",
       data: {
@@ -135,6 +135,41 @@ export const getCourseById = async (
       });
     }
   }
+};
+
+// FUNCTION
+export const checkDiscountValid = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  // if there is discount thn check is that valid
+  if (req.body?.discount) {
+    //
+    interface Course {
+      price: number;
+    }
+    // fetch the course price
+    const course: Course | null = await CourseModel.findOne({
+      id: Number(req.params.id),
+    })
+      .select("price")
+      .lean();
+
+    const coursePrice = course?.price || 0;
+
+    if (req.body.discount > coursePrice) {
+      res.status(400).json({
+        status: "fail",
+        message: "Discount price should not be greater than actual price",
+      });
+    } else {
+      next();
+    }
+  } else {
+    next();
+  }
+  // if there is no discount then move to next middleware
 };
 
 // FUNCTION
@@ -243,7 +278,6 @@ export const getCoursesStats = async (
 // FUNCTION
 export const getBestCourse = async (req: Request, res: Response) => {
   try {
-    console.log("best course");
     const bestCourse = await CourseModel.aggregate([
       {
         $group: {

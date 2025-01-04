@@ -13,6 +13,7 @@ interface CourseInterface extends Document {
   averageRating: number;
   ratingsQuantity: number;
   price: number;
+  discount: number;
 }
 
 // Define the schema for the Course model
@@ -89,6 +90,10 @@ const courseSchema = new Schema<CourseInterface>(
       type: Number,
       required: [true, "A course must have price"],
     },
+    discount: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     toObject: { virtuals: true },
@@ -107,7 +112,20 @@ courseSchema.virtual("durationMins").get(function (): number {
 // document middleware _________________________________________
 courseSchema.pre("save", async function (next): Promise<void> {
   const totalDocuments = await this.model("Course").countDocuments();
+
   this.id = totalDocuments + 1;
+
+  if (this.discount && this.discount > this.price) {
+    throw new Error("Discount price should not be greater than actual price");
+  }
+
+  console.log(this);
+  next();
+});
+
+courseSchema.pre("findOneAndUpdate", function (next): void {
+  console.log(this);
+
   next();
 });
 

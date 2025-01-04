@@ -12,6 +12,7 @@ import {
   aliasTop5Longest,
   getCoursesStats,
   getBestCourse,
+  checkDiscountValid,
 } from "../controllers/courses-controller";
 
 const router: Router = express.Router();
@@ -28,7 +29,7 @@ router.route("/best-course").get(getBestCourse);
 router
   .route("/:id")
   .get(getCourseById)
-  .patch(updateCourseById)
+  .patch(checkDiscountValid, updateCourseById)
   .delete(deleteCourseById);
 
 export default router;
