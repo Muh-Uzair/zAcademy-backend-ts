@@ -85,8 +85,21 @@ const courseSchema = new Schema<CourseInterface>(
       required: [true, "A course must have price"],
     },
   },
-  { timestamps: true, versionKey: false, strict: true },
+  {
+    toObject: { virtuals: true },
+    toJSON: { virtuals: true },
+    timestamps: true,
+    versionKey: false,
+    strict: true,
+  },
 );
+
+// virtual properties
+courseSchema.virtual("durationMins").get(function (): number {
+  return Number(this.duration) * 60; // return the duration in minutes
+});
+
+//
 
 // Create the model using the schema and interface
 const CourseModel = model<CourseInterface>("Course", courseSchema);
