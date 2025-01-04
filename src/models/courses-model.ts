@@ -3,6 +3,7 @@ import { Schema, model, Document } from "mongoose";
 // Define the interface for the Course document
 interface CourseInterface extends Document {
   createdAt: Date;
+  id: number;
   coverImage: string;
   name: string;
   instructor: string;
@@ -21,6 +22,10 @@ const courseSchema = new Schema<CourseInterface>(
       type: Date,
       default: Date.now(),
       select: false,
+    },
+    id: {
+      type: Number,
+      unique: [true, "Every course must have a unique id"],
     },
     coverImage: {
       type: String,
@@ -99,7 +104,14 @@ courseSchema.virtual("durationMins").get(function (): number {
   return Number(this.duration) * 60; // return the duration in minutes
 });
 
-//
+// document middleware
+courseSchema.pre("save", async function (next): Promise<void> {
+  const totalDocuments = await this.model("Course").countDocuments();
+
+  this.id = totalDocuments + 1;
+
+  next();
+});
 
 // Create the model using the schema and interface
 const CourseModel = model<CourseInterface>("Course", courseSchema);

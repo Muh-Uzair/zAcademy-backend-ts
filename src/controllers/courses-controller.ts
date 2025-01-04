@@ -61,18 +61,8 @@ export const createCourse = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
+  const newCreatedCourse = await CourseModel.create(req.body);
   try {
-    // 1 : get all the course
-    const allCourse: CourseInterface[] = await CourseModel.find();
-
-    // 2 : find the new course id
-    const courseId: number = allCourse.length + 1;
-
-    // 3 : create a new course
-    const newCourseObj: CourseInterface = { id: courseId, ...req.body };
-
-    const newCreatedCourse: CourseInterface =
-      await CourseModel.create(newCourseObj);
     res.status(201).json({
       status: "success",
       data: {
