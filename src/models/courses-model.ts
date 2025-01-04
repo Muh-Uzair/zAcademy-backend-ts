@@ -104,29 +104,43 @@ courseSchema.virtual("durationMins").get(function (): number {
   return Number(this.duration) * 60; // return the duration in minutes
 });
 
-// document middleware
+// document middleware _________________________________________
 courseSchema.pre("save", async function (next): Promise<void> {
   const totalDocuments = await this.model("Course").countDocuments();
   this.id = totalDocuments + 1;
   next();
 });
 
-courseSchema.post("save", function (doc, next): void {
-  console.log("Document saved successfully");
-  console.log(doc);
-  next();
-});
+// courseSchema.post("save", function (doc, next): void {
+//   console.log("Document saved successfully");
+//   console.log(doc);
+//   next();
+// });
 
-// query middle ware
-courseSchema.pre("countDocuments", function (next): void {
-  console.log("Running before countDocuments query middleware");
-  next();
-});
+// query middle ware ___________________________________________
+// courseSchema.pre("countDocuments", function (next): void {
+//   console.log(" ");
+//   console.log("Actual query");
+//   console.log(this);
+//   console.log("Running before countDocuments query middleware");
+//   next();
+// });
 
-courseSchema.post("countDocuments", function (doc, next): void {
-  console.log("Running after countDocuments query middleware");
-  next();
-});
+// courseSchema.post("countDocuments", function (doc, next): void {
+//   console.log("Running after countDocuments query middleware");
+//   next();
+// });
+
+// aggregation middleware _______________________________________
+// courseSchema.pre("aggregate", function (next): void {
+//   console.log("Running before aggregation middleware");
+//   next();
+// });
+
+// courseSchema.post("aggregate", function (doc, next): void {
+//   console.log("Running after aggregation middleware");
+//   next();
+// });
 
 // Create the model using the schema and interface
 const CourseModel = model<CourseInterface>("Course", courseSchema);

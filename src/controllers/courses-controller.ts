@@ -243,7 +243,8 @@ export const getCoursesStats = async (
 // FUNCTION
 export const getBestCourse = async (req: Request, res: Response) => {
   try {
-    const data = await CourseModel.aggregate([
+    console.log("best course");
+    const bestCourse = await CourseModel.aggregate([
       {
         $group: {
           _id: "$averageRating",
@@ -265,7 +266,7 @@ export const getBestCourse = async (req: Request, res: Response) => {
     res.status(200).json({
       status: "success",
       data: {
-        data,
+        bestCourse,
       },
     });
   } catch (error: unknown) {
