@@ -1,11 +1,14 @@
 import { Request, Response, NextFunction } from "express";
 import { CourseInterface, CourseModel } from "../models/courses-model";
 import { apiFeatures } from "../utils/apiFeatures";
+import { AppError } from "../utils/appError";
+import { globalAsyncCatch } from "../utils/global-async-catch";
 
 // FUNCTION
 export const getAllCourses = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ): Promise<void> => {
   try {
     //
@@ -18,6 +21,10 @@ export const getAllCourses = async (
 
     const courses: CourseInterface[] = await apiFeaturesObj.query;
 
+    if (courses.length === 0 && !courses) {
+      next(new AppError("No courses found", 404));
+    }
+
     res.status(200).json({
       status: "success",
       results: courses.length,
@@ -26,17 +33,7 @@ export const getAllCourses = async (
       },
     });
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      res.status(500).json({
-        status: "fail",
-        message: error.message,
-      });
-    } else {
-      res.status(500).json({
-        status: "fail",
-        message: "An unexpected error occurred.",
-      });
-    }
+    globalAsyncCatch(error, next);
   }
 };
 
@@ -47,10 +44,7 @@ export const checkIdExist = (
   next: NextFunction,
 ): void => {
   if (req.body?.id) {
-    res.status(400).json({
-      status: "fail",
-      message: "id should not be sent in the course creation",
-    });
+    next(new AppError("id should not be sent when creating course", 400));
   } else {
     next();
   }
@@ -60,6 +54,7 @@ export const checkIdExist = (
 export const createCourse = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const newCreatedCourse = await CourseModel.create(req.body);
@@ -70,17 +65,7 @@ export const createCourse = async (
       },
     });
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      res.status(500).json({
-        status: "fail",
-        message: error.message,
-      });
-    } else {
-      res.status(500).json({
-        status: "fail",
-        message: "An unexpected error occurred.",
-      });
-    }
+    globalAsyncCatch(error, next);
   }
 };
 
@@ -95,10 +80,7 @@ export const checkIdValid = async (
   req.body.allCoursesLength = allCoursesLength;
 
   if (Number(val) > allCoursesLength) {
-    res.status(500).json({
-      status: "fail",
-      message: `${val} is invalid course id`,
-    });
+    next(new AppError(`${val} is invalid course id`, 400));
   } else {
     next();
   }
@@ -107,6 +89,7 @@ export const checkIdValid = async (
 export const getCourseById = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const course = await CourseModel.find({
@@ -123,17 +106,7 @@ export const getCourseById = async (
       },
     });
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      res.status(500).json({
-        status: "fail",
-        message: error.message,
-      });
-    } else {
-      res.status(500).json({
-        status: "fail",
-        message: "An unexpected error occurred.",
-      });
-    }
+    globalAsyncCatch(error, next);
   }
 };
 
@@ -176,6 +149,7 @@ export const checkDiscountValid = async (
 export const updateCourseById = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const updatedCourse = await CourseModel.findOneAndUpdate(
@@ -191,17 +165,7 @@ export const updateCourseById = async (
       },
     });
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      res.status(500).json({
-        status: "fail",
-        message: error.message,
-      });
-    } else {
-      res.status(500).json({
-        status: "fail",
-        message: "An unexpected error has occurred",
-      });
-    }
+    globalAsyncCatch(error, next);
   }
 };
 
@@ -209,6 +173,7 @@ export const updateCourseById = async (
 export const deleteCourseById = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ): Promise<void> => {
   try {
     await CourseModel.deleteOne({ id: Number(req.params.id) });
@@ -219,17 +184,7 @@ export const deleteCourseById = async (
       data: null,
     });
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      res.status(500).json({
-        status: "fail",
-        message: error.message,
-      });
-    } else {
-      res.status(500).json({
-        status: "fail",
-        message: "An unexpected error has occurred",
-      });
-    }
+    globalAsyncCatch(error, next);
   }
 };
 
@@ -237,6 +192,7 @@ export const deleteCourseById = async (
 export const getCoursesStats = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const courses = await CourseModel.aggregate([
@@ -261,22 +217,16 @@ export const getCoursesStats = async (
       },
     });
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      res.status(500).json({
-        status: "fail",
-        message: error.message,
-      });
-    } else {
-      res.status(500).json({
-        status: "fail",
-        message: "An unexpected error has occurred",
-      });
-    }
+    globalAsyncCatch(error, next);
   }
 };
 
 // FUNCTION
-export const getBestCourse = async (req: Request, res: Response) => {
+export const getBestCourse = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const bestCourse = await CourseModel.aggregate([
       {
@@ -304,17 +254,7 @@ export const getBestCourse = async (req: Request, res: Response) => {
       },
     });
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      res.status(500).json({
-        status: "fail",
-        message: error.message,
-      });
-    } else {
-      res.status(500).json({
-        status: "fail",
-        message: "An unexpected error has occurred",
-      });
-    }
+    globalAsyncCatch(error, next);
   }
 };
 
