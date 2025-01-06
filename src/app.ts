@@ -3,6 +3,7 @@ import coursesRouter from "./routes/courses-routes";
 import morgan from "morgan";
 import dotenv from "dotenv";
 import { AppError } from "./utils/appError";
+import { globalErrorCatcher } from "./utils/globalErrorCatcher";
 const app = express();
 dotenv.config({ path: "./config.env" });
 app.use(express.json());
@@ -18,10 +19,7 @@ app.all("*", (req: Request, res: Response, next: NextFunction) => {
 
 // global error handler
 app.use((err: AppError, req: Request, res: Response, next: NextFunction) => {
-  res.status(err.errorStatusCode).json({
-    status: err.errorStatus,
-    message: err.message,
-  });
+  globalErrorCatcher(err, req, res, next);
 });
 
 export default app;
