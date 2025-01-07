@@ -8,7 +8,7 @@ import { globalAsyncCatch } from "../utils/global-async-catch";
 export const getAllCourses = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): Promise<void> => {
   try {
     //
@@ -41,7 +41,7 @@ export const getAllCourses = async (
 export const checkIdExist = (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): void => {
   if (req.body?.id) {
     next(new AppError("id should not be sent when creating course", 400));
@@ -54,7 +54,7 @@ export const checkIdExist = (
 export const createCourse = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const newCreatedCourse = await CourseModel.create(req.body);
@@ -74,7 +74,7 @@ export const checkIdValid = async (
   req: Request,
   res: Response,
   next: NextFunction,
-  val: string,
+  val: string
 ): Promise<void> => {
   const allCoursesLength: number = await CourseModel.countDocuments();
   req.body.allCoursesLength = allCoursesLength;
@@ -89,7 +89,7 @@ export const checkIdValid = async (
 export const getCourseById = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const course = await CourseModel.find({
@@ -114,7 +114,7 @@ export const getCourseById = async (
 export const checkDiscountValid = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): Promise<void> => {
   // if there is discount thn check is that valid
   if (req.body?.discount) {
@@ -149,13 +149,13 @@ export const checkDiscountValid = async (
 export const updateCourseById = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const updatedCourse = await CourseModel.findOneAndUpdate(
       { id: Number(req.params.id) },
       req.body,
-      { new: true, runValidators: true },
+      { new: true, runValidators: true }
     );
 
     res.status(200).json({
@@ -173,7 +173,7 @@ export const updateCourseById = async (
 export const deleteCourseById = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): Promise<void> => {
   try {
     await CourseModel.deleteOne({ id: Number(req.params.id) });
@@ -192,7 +192,7 @@ export const deleteCourseById = async (
 export const getCoursesStats = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const courses = await CourseModel.aggregate([
@@ -225,7 +225,7 @@ export const getCoursesStats = async (
 export const getBestCourse = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
     const bestCourse = await CourseModel.aggregate([
@@ -262,7 +262,7 @@ export const getBestCourse = async (
 export const aliasTop5Courses = (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): void => {
   //?limit=5&sort=-ratingsAverage
 
@@ -276,7 +276,7 @@ export const aliasTop5Courses = (
 export const aliasTop5Cheapest = (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): void => {
   req.query.limit = "5";
   req.query.sort = "price";
@@ -288,7 +288,7 @@ export const aliasTop5Cheapest = (
 export const aliasTop5Longest = (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): void => {
   req.query.limit = "5";
   req.query.sort = "-duration";
