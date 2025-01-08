@@ -1,3 +1,13 @@
+process.on("uncaughtException", (err: unknown) => {
+  console.log("Uncaught exception");
+
+  if (err instanceof Error) {
+    console.log(err.name, err.message);
+  }
+
+  process.exit(1);
+});
+
 import app from "./app";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
@@ -30,8 +40,21 @@ mongoose
   .then(() => console.log("connection to local db success"));
 //___________________________
 
-app.listen(process.env.PORT || 3000, () => {
+const server = app.listen(process.env.PORT || 3000, () => {
   console.log(
-    `Server is listening on port ${process.env.PORT || 3000} | request to 127.0.0.1:3000`,
+    `Server is listening on port ${process.env.PORT || 3000} | request to 127.0.0.1:3000`
   );
+});
+
+// if any async returns an error and that is not handled this will catch it
+process.on("unhandledRejection", (err: unknown) => {
+  console.log("Unhandled error rejections");
+
+  if (err instanceof Error) {
+    console.log(err.name, err.message);
+  }
+
+  server.close(() => {
+    process.exit(1);
+  });
 });

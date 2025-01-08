@@ -76,13 +76,17 @@ export const checkIdValid = async (
   next: NextFunction,
   val: string
 ): Promise<void> => {
-  const allCoursesLength: number = await CourseModel.countDocuments();
-  req.body.allCoursesLength = allCoursesLength;
-
-  if (Number(val) > allCoursesLength) {
+  if (!/^[1-9]$/.test(val)) {
     next(new AppError(`${val} is invalid course id`, 400));
   } else {
-    next();
+    const allCoursesLength: number = await CourseModel.countDocuments();
+    req.body.allCoursesLength = allCoursesLength;
+
+    if (Number(val) > allCoursesLength) {
+      next(new AppError(`${val} is invalid course id`, 400));
+    } else {
+      next();
+    }
   }
 };
 
