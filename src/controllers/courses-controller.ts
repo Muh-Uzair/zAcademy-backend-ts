@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { CourseInterface, CourseModel } from "../models/courses-model";
-import { apiFeatures } from "../utils/apiFeatures";
-import { AppError } from "../utils/appError";
+import { apiFeatures } from "../utils/api-features";
+import { AppError } from "../utils/app-error";
 import { globalAsyncCatch } from "../utils/global-async-catch";
 
 // FUNCTION

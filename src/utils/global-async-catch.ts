@@ -1,5 +1,5 @@
 import { NextFunction } from "express";
-import { AppError } from "./appError";
+import { AppError } from "./app-error";
 
 const globalAsyncCatch = (error: unknown, next: NextFunction) => {
   if (error instanceof Error) {

@@ -3,6 +3,8 @@ process.on("uncaughtException", (err: unknown) => {
 
   if (err instanceof Error) {
     console.log(err.name, err.message);
+  } else {
+    console.log(err);
   }
 
   process.exit(1);
@@ -40,9 +42,9 @@ mongoose
   .then(() => console.log("connection to local db success"));
 //___________________________
 
-const server = app.listen(process.env.PORT || 3000, () => {
+const server = app.listen(process.env.PORT, () => {
   console.log(
-    `Server is listening on port ${process.env.PORT || 3000} | request to 127.0.0.1:3000`
+    `Server is listening on port ${process.env.PORT} | request to 127.0.0.1:3000`
   );
 });
 
@@ -52,6 +54,8 @@ process.on("unhandledRejection", (err: unknown) => {
 
   if (err instanceof Error) {
     console.log(err.name, err.message);
+  } else {
+    console.log(err);
   }
 
   server.close(() => {
