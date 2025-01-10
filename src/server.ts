@@ -1,6 +1,8 @@
 process.on("uncaughtException", (err: unknown) => {
   console.log("Uncaught exception");
 
+  // afaq ref
+
   if (err instanceof Error) {
     console.log(err.name, err.message);
   } else {
