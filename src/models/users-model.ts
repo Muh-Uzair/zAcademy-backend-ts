@@ -56,6 +56,7 @@ const userSchema = new Schema<UserInterface>(
       trim: true,
       required: [true, "Password is required"],
       minlength: [8, "Password must be at least 8 characters long"],
+      select: false,
     },
     confirmPassword: {
       type: String,
@@ -69,7 +70,18 @@ const userSchema = new Schema<UserInterface>(
       },
     },
   },
-  { timestamps: true, versionKey: false }
+  {
+    timestamps: true,
+    versionKey: false,
+    toJSON: {
+      transform: function (doc, ret) {
+        delete ret.password;
+        delete ret.confirmPassword;
+
+        return ret;
+      },
+    },
+  }
 );
 
 // Pre-save middleware
@@ -85,8 +97,6 @@ userSchema.pre("save", async function (next): Promise<void> {
 
     next();
   }
-
-  console.log("before signup");
   next();
 });
 

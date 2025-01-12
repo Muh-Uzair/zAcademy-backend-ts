@@ -15,23 +15,3 @@ export const getAllUsers = (
     },
   });
 };
-
-// FUNCTION
-export const signup = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-    const newUser: UserInterface = await UserModel.create(req.body);
-
-    res.status(200).json({
-      status: "success",
-      data: {
-        newUser,
-      },
-    });
-  } catch (error: unknown) {
-    globalAsyncCatch(error, next);
-  }
-};
