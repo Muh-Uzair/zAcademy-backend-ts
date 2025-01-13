@@ -14,12 +14,13 @@ import {
   getBestCourse,
   checkDiscountValid,
 } from "../controllers/courses-controller";
+import { protect } from "../controllers/auth-controller";
 
 const router: Router = express.Router();
 
 router.param("id", checkIdValid);
 
-router.route("/").get(getAllCourses).post(checkIdExist, createCourse);
+router.route("/").get(protect, getAllCourses).post(checkIdExist, createCourse);
 router.route("/courses-stats").get(getCoursesStats);
 router.route("/top-5-courses").get(aliasTop5Courses, getAllCourses);
 router.route("/top-5-cheapest").get(aliasTop5Cheapest, getAllCourses);
