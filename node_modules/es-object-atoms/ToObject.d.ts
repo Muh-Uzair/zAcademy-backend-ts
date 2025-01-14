@@ -1,3 +1,3 @@
-declare function ToObject<T = {}>(value: T extends object ? T : {}): T extends object ? T : object;
+declare function ToObject<T extends {}>(value: T): T & object;
 
 export = ToObject;
