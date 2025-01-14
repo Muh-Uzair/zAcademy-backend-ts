@@ -28,10 +28,14 @@ const signToken = (id: string): string | null => {
     }`
   );
   console.log(process.env.JWT_SECRET);
-  console.log(`token-type${typeof token} token-length${token.length}`);
+  console.log(`token-type ${typeof token} token-length ${token.length}`);
   console.log(token);
 
   console.log(encodedToken);
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    console.log(decoded);
+  });
 
   return token;
 };
@@ -136,20 +140,13 @@ export const protect = (req: Request, res: Response, next: NextFunction) => {
   if (!process.env.JWT_SECRET) {
     return next(new AppError("Invalid jwt secret", 401));
   }
+
   // --> verify the token
-  console.log(
-    `secret-type ${typeof process.env.JWT_SECRET} secret-length ${
-      process.env.JWT_SECRET.length
-    }`
-  );
-  console.log(process.env.JWT_SECRET);
-  console.log(`token-type ${typeof token} token-length ${token.length}`);
-  console.log(token);
-  const encodedToken1 = jwt.decode(token);
-  console.log(encodedToken1);
+  try {
+    var decoded = jwt.verify(token, process.env.JWT_SECRET);
+  } catch (err) {
+    globalAsyncCatch(err, next);
+  }
 
   next();
 };
-
-//eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ODUxOWJjZWUwM2UwM2NlYjQwNTDNEpUTHQoQUJMHLrErGJyHg89uy71MyuHwIjoxNzM2ODYyNTI1fQ.5n7Z-rYzCQnpWUe3ppAc9RTNixht33gYNEUHcnNn6AI
-//eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ODUxOWJjZWUwM2UwM2NlYjQwNTDNEpUTHQoQUJMHLrErGJyHg89uy71MyuHwIjoxNzM2ODYyNTY4fQ.srmYeeTRpqN-lDjfRkYhO_j7AvxKw6VQZ0UPYyJC6xU
