@@ -161,3 +161,4 @@ export const protect = (req: Request, res: Response, next: NextFunction) => {
     globalAsyncCatch(err, next);
   }
 };
+// afat token working
