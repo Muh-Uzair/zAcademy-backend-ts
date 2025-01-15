@@ -21,7 +21,7 @@ const signToken = (id: string): string | null => {
     throw new Error("JWT_SECRET is not defined");
   }
   const token: string = jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: 86400000,
+    expiresIn: "3d",
   });
 
   tokenGlobal = token;
@@ -129,8 +129,41 @@ interface interfaceDecodedToken {
 }
 
 //FUNCTION
+// export const protect = (req: Request, res: Response, next: NextFunction) => {
+//   // 1 : check is there are headers
+//   if (
+//     !req.headers.authorization ||
+//     !req.headers.authorization.startsWith("Bearer")
+//   ) {
+//     return next(
+//       new AppError("No request headers or invalid authorization format", 400)
+//     );
+//   }
+
+//   const receivedToken = req.headers.authorization.split(" ")[1];
+
+//   console.log(receivedToken);
+//   console.log(" ");
+//   console.log(tokenGlobal);
+//   console.log(receivedToken === tokenGlobal);
+//   console.log(receivedToken.length === tokenGlobal.length);
+
+//   try {
+//     if (!process.env.JWT_SECRET) {
+//       next(new AppError("no jwt token", 401));
+//     }
+//     if (!process.env.JWT_SECRET) {
+//       throw new Error("JWT_SECRET is not defined");
+//     }
+//     const decodedToken = jwt.verify(receivedToken, process.env.JWT_SECRET);
+//     next();
+//   } catch (err) {
+//     globalAsyncCatch(err, next);
+//   }
+// };
+
+// FUNCTION
 export const protect = (req: Request, res: Response, next: NextFunction) => {
-  // 1 : check is there are headers
   if (
     !req.headers.authorization ||
     !req.headers.authorization.startsWith("Bearer")
@@ -142,23 +175,17 @@ export const protect = (req: Request, res: Response, next: NextFunction) => {
 
   const receivedToken = req.headers.authorization.split(" ")[1];
 
-  console.log(receivedToken);
-  console.log(" ");
-  console.log(tokenGlobal);
-  console.log(receivedToken === tokenGlobal);
-  console.log(receivedToken.length === tokenGlobal.length);
-
   try {
-    if (!process.env.JWT_SECRET) {
-      next(new AppError("no jwt token", 401));
+    if (!receivedToken || !process.env.JWT_SECRET) {
+      throw new AppError("Either token or secret is invalid", 400);
     }
-    if (!process.env.JWT_SECRET) {
-      throw new Error("JWT_SECRET is not defined");
-    }
+
     const decodedToken = jwt.verify(receivedToken, process.env.JWT_SECRET);
+
+    console.log(decodedToken);
+
     next();
   } catch (err) {
     globalAsyncCatch(err, next);
   }
 };
-// afat token working
