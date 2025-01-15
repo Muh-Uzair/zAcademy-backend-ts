@@ -5,12 +5,15 @@ import jwt from "jsonwebtoken";
 import { AppError } from "../utils/app-error";
 import bcrypt from "bcryptjs";
 import { type } from "node:os";
+import * as jose from "jose";
 
 interface interfaceDecodedToken {
   id: string;
   iat: number;
   exp: number;
 }
+
+let tokenGlobal = "";
 
 // FUNCTION
 const signToken = (id: string): string | null => {
@@ -20,6 +23,8 @@ const signToken = (id: string): string | null => {
   const token: string = jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: 86400000,
   });
+
+  tokenGlobal = token;
 
   const encodedToken = jwt.decode(token);
   console.log(
@@ -117,36 +122,45 @@ export const login = async (
   }
 };
 
-// FUNCTION
+interface interfaceDecodedToken {
+  id: string;
+  iat: number;
+  exp: number;
+}
+
+//FUNCTION
 export const protect = (req: Request, res: Response, next: NextFunction) => {
-  let token: string | null = null;
-  // 1 : get the token from the header received in the request
+  // 1 : check is there are headers
   if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
+    !req.headers.authorization ||
+    !req.headers.authorization.startsWith("Bearer")
   ) {
-    token = req.headers.authorization.split(" ")[1].trim();
+    return next(
+      new AppError("No request headers or invalid authorization format", 400)
+    );
   }
 
-  if (!token) {
-    return next(new AppError("Provide token in request headers", 401));
-  }
+  const receivedToken = req.headers.authorization.split(" ")[1];
 
-  // 2 : now if token exist than check that the token is not expired
-  // and also check that some has not changed the payload of token
-  console.log("step 2 : start");
+  console.log(receivedToken);
+  console.log(tokenGlobal);
+  console.log(receivedToken === tokenGlobal);
+  console.log(receivedToken.length === tokenGlobal.length);
 
-  // -> check the jwt secret exists
-  if (!process.env.JWT_SECRET) {
-    return next(new AppError("Invalid jwt secret", 401));
-  }
-
-  // --> verify the token
   try {
-    var decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!process.env.JWT_SECRET) {
+      next(new AppError("no jwt token", 401));
+    }
+    if (!process.env.JWT_SECRET) {
+      throw new Error("JWT_SECRET is not defined");
+    }
+    const decodedToken = jwt.verify(tokenGlobal, process.env.JWT_SECRET);
+    console.log(decodedToken);
   } catch (err) {
     globalAsyncCatch(err, next);
   }
+
+  console.log(receivedToken);
 
   next();
 };
