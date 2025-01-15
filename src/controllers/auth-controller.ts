@@ -143,6 +143,7 @@ export const protect = (req: Request, res: Response, next: NextFunction) => {
   const receivedToken = req.headers.authorization.split(" ")[1];
 
   console.log(receivedToken);
+  console.log(" ");
   console.log(tokenGlobal);
   console.log(receivedToken === tokenGlobal);
   console.log(receivedToken.length === tokenGlobal.length);
@@ -154,13 +155,9 @@ export const protect = (req: Request, res: Response, next: NextFunction) => {
     if (!process.env.JWT_SECRET) {
       throw new Error("JWT_SECRET is not defined");
     }
-    const decodedToken = jwt.verify(tokenGlobal, process.env.JWT_SECRET);
-    console.log(decodedToken);
+    const decodedToken = jwt.verify(receivedToken, process.env.JWT_SECRET);
+    next();
   } catch (err) {
     globalAsyncCatch(err, next);
   }
-
-  console.log(receivedToken);
-
-  next();
 };
