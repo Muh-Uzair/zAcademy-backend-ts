@@ -1,4 +1,4 @@
-import { Document, Schema, model } from "mongoose";
+import { Document, Model, Schema, model } from "mongoose";
 import * as validator from "validator";
 import bcrypt from "bcryptjs";
 
@@ -10,10 +10,22 @@ interface UserInterface extends Document {
   phoneNumber: string;
   password: string;
   confirmPassword?: string | undefined;
+  passwordChangedDate?: Date;
 }
 
+interface UserInterfaceMethods {
+  checkPasswordChangedAfter(tokenIssueDate: number): boolean;
+}
+
+type TypeUserModel = Model<UserInterface, {}, UserInterfaceMethods>;
+
+// FUNCTION
 // Define the User schema
-const userSchema = new Schema<UserInterface>(
+const userSchema = new Schema<
+  UserInterface,
+  TypeUserModel,
+  UserInterfaceMethods
+>(
   {
     photo: {
       type: String,
@@ -69,6 +81,9 @@ const userSchema = new Schema<UserInterface>(
         message: "Passwords do not match",
       },
     },
+    passwordChangedDate: {
+      type: Date,
+    },
   },
   {
     timestamps: true,
@@ -84,6 +99,7 @@ const userSchema = new Schema<UserInterface>(
   }
 );
 
+// FUNCTION
 // Pre-save middleware
 userSchema.pre("save", async function (next): Promise<void> {
   // if user have modified the password than encrypt it again
@@ -100,7 +116,23 @@ userSchema.pre("save", async function (next): Promise<void> {
   next();
 });
 
+// FUNCTION
+// this is an instance method
+userSchema.method(
+  "checkPasswordChangedAfter",
+  function (tokenIssueDate: number) {
+    // this in instance method points to current document
+    if (this.passwordChangedDate) {
+      const date = new Date("2019-04-03T00:00:00.000Z");
+      const unixTimestamp = Math.floor(date.getTime() / 1000);
+      return tokenIssueDate > unixTimestamp;
+    }
+
+    return false;
+  }
+);
+
 // Create the User model
-const UserModel = model<UserInterface>("User", userSchema);
+const UserModel = model<UserInterface, TypeUserModel>("User", userSchema);
 
 export { UserModel, UserInterface };

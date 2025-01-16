@@ -3,10 +3,15 @@ import { CourseInterface, CourseModel } from "../models/courses-model";
 import { apiFeatures } from "../utils/api-features";
 import { AppError } from "../utils/app-error";
 import { globalAsyncCatch } from "../utils/global-async-catch";
+import { UserInterface } from "../models/users-model";
+
+interface CustomRequest extends Request {
+  user?: UserInterface;
+}
 
 // FUNCTION
 export const getAllCourses = async (
-  req: Request,
+  req: CustomRequest,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
@@ -28,6 +33,7 @@ export const getAllCourses = async (
     res.status(200).json({
       status: "success",
       results: courses.length,
+      user: req.user,
       data: {
         courses,
       },

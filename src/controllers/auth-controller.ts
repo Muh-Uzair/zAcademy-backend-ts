@@ -13,6 +13,10 @@ interface interfaceDecodedToken {
   exp: number;
 }
 
+interface CustomRequest extends Request {
+  user?: UserInterface;
+}
+
 let tokenGlobal = "";
 
 // FUNCTION
@@ -21,7 +25,7 @@ const signToken = (id: string): string | null => {
     throw new Error("JWT_SECRET is not defined");
   }
   const token: string = jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: "3d",
+    expiresIn: "6d",
   });
 
   tokenGlobal = token;
@@ -128,42 +132,13 @@ interface interfaceDecodedToken {
   exp: number;
 }
 
-//FUNCTION
-// export const protect = (req: Request, res: Response, next: NextFunction) => {
-//   // 1 : check is there are headers
-//   if (
-//     !req.headers.authorization ||
-//     !req.headers.authorization.startsWith("Bearer")
-//   ) {
-//     return next(
-//       new AppError("No request headers or invalid authorization format", 400)
-//     );
-//   }
-
-//   const receivedToken = req.headers.authorization.split(" ")[1];
-
-//   console.log(receivedToken);
-//   console.log(" ");
-//   console.log(tokenGlobal);
-//   console.log(receivedToken === tokenGlobal);
-//   console.log(receivedToken.length === tokenGlobal.length);
-
-//   try {
-//     if (!process.env.JWT_SECRET) {
-//       next(new AppError("no jwt token", 401));
-//     }
-//     if (!process.env.JWT_SECRET) {
-//       throw new Error("JWT_SECRET is not defined");
-//     }
-//     const decodedToken = jwt.verify(receivedToken, process.env.JWT_SECRET);
-//     next();
-//   } catch (err) {
-//     globalAsyncCatch(err, next);
-//   }
-// };
-
 // FUNCTION
-export const protect = (req: Request, res: Response, next: NextFunction) => {
+export const protect = async (
+  req: CustomRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  // 1 : check if there is authorization in headers
   if (
     !req.headers.authorization ||
     !req.headers.authorization.startsWith("Bearer")
@@ -173,6 +148,7 @@ export const protect = (req: Request, res: Response, next: NextFunction) => {
     );
   }
 
+  // --> take the token out the headers
   const receivedToken = req.headers.authorization.split(" ")[1];
 
   try {
@@ -180,9 +156,31 @@ export const protect = (req: Request, res: Response, next: NextFunction) => {
       throw new AppError("Either token or secret is invalid", 400);
     }
 
+    // 2 : verify token
     const decodedToken = jwt.verify(receivedToken, process.env.JWT_SECRET);
 
-    console.log(decodedToken);
+    if (typeof decodedToken !== "object" || !decodedToken.id) {
+      throw new AppError(
+        "Invalid decoded token or id does not exist on decoded token",
+        500
+      );
+    }
+
+    const { id } = decodedToken;
+
+    // 3 : check the user against the id in the token
+    const user = await UserModel.findById(id);
+
+    if (!user) {
+      throw new AppError(`No user for id ${id}`, 400);
+    }
+
+    // 4 : check if the user has change the password after the token was issued
+    if (user.checkPasswordChangedAfter(decodedToken.iat as number)) {
+      throw new AppError("User have recently changes the password", 401);
+    }
+
+    req.user = user;
 
     next();
   } catch (err) {
