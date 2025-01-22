@@ -14,7 +14,7 @@ import {
   getBestCourse,
   checkDiscountValid,
 } from "../controllers/courses-controller";
-import { protect } from "../controllers/auth-controller";
+import { protect, restrictTo } from "../controllers/auth-controller";
 
 const router: Router = express.Router();
 
@@ -31,6 +31,6 @@ router
   .route("/:id")
   .get(getCourseById)
   .patch(checkDiscountValid, updateCourseById)
-  .delete(deleteCourseById);
+  .delete(protect, restrictTo(["admin", "teacher"]), deleteCourseById);
 
 export default router;

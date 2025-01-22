@@ -16,7 +16,12 @@ app.use("/api/courses", coursesRouter);
 app.use("/api/users", userRouter);
 
 app.all("*", (req: Request, res: Response, next: NextFunction) => {
-  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+  next(
+    new AppError(
+      `Can't find ${req.protocol}://${req.ip}:${process.env.PORT}/${req.originalUrl} on this server!`,
+      404
+    )
+  );
 });
 
 // global error handler

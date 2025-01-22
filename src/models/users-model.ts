@@ -1,6 +1,7 @@
 import { Document, Model, Schema, model } from "mongoose";
 import * as validator from "validator";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 
 // Define the User interface
 interface UserInterface extends Document {
@@ -11,10 +12,14 @@ interface UserInterface extends Document {
   password: string;
   confirmPassword?: string | undefined;
   passwordChangedDate?: Date;
+  role: string;
+  passwordResetToken?: string | undefined;
+  passwordResetExpires?: Date | undefined;
 }
 
 interface UserInterfaceMethods {
   checkPasswordChangedAfter(tokenIssueDate: number): boolean;
+  createPasswordResetToken(): string;
 }
 
 type TypeUserModel = Model<UserInterface, {}, UserInterfaceMethods>;
@@ -84,6 +89,22 @@ const userSchema = new Schema<
     passwordChangedDate: {
       type: Date,
     },
+    role: {
+      type: String,
+      required: [true, "role must be specified"],
+      enum: {
+        values: ["admin", "teacher", "student"],
+        message:
+          "invalid role {VALUE}, valid roles are admin, teacher, student",
+      },
+      default: "student",
+    },
+    passwordResetToken: {
+      type: String,
+    },
+    passwordResetExpires: {
+      type: Date,
+    },
   },
   {
     timestamps: true,
@@ -123,7 +144,7 @@ userSchema.method(
   function (tokenIssueDate: number) {
     // this in instance method points to current document
     if (this.passwordChangedDate) {
-      const date = new Date("2019-04-03T00:00:00.000Z");
+      const date = new Date(this.passwordChangedDate);
       const unixTimestamp = Math.floor(date.getTime() / 1000);
       return tokenIssueDate > unixTimestamp;
     }
@@ -131,6 +152,24 @@ userSchema.method(
     return false;
   }
 );
+
+// FUNCTION generate random token for forgot passwords
+userSchema.method("createPasswordResetToken", function (): string {
+  // 1 : create a token using crypt
+  const resetToken = crypto.randomBytes(32).toString("hex"); // 32 bit string in hex format
+
+  // 2 : encrypt that original token and store it on the user object, then store that user in DB
+  this.passwordResetToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+
+  // 3 :  reset token expires in 10 mins
+  this.passwordResetExpires = new Date(Date.now() + 10 * 60 * 1000);
+
+  // 4 : return that original token
+  return resetToken;
+});
 
 // Create the User model
 const UserModel = model<UserInterface, TypeUserModel>("User", userSchema);

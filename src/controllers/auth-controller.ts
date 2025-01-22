@@ -1,11 +1,13 @@
-import { NextFunction, Request, Response } from "express";
-import { UserInterface, UserModel } from "../models/users-model";
-import { globalAsyncCatch } from "../utils/global-async-catch";
-import jwt from "jsonwebtoken";
-import { AppError } from "../utils/app-error";
-import bcrypt from "bcryptjs";
-import { type } from "node:os";
 import * as jose from "jose";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
+import crypto from "crypto";
+import { NextFunction, Request, Response } from "express";
+
+import { sendEmail } from "../routes/email";
+import { globalAsyncCatch } from "../utils/global-async-catch";
+import { AppError } from "../utils/app-error";
+import { UserInterface, UserModel } from "../models/users-model";
 
 interface interfaceDecodedToken {
   id: string;
@@ -17,8 +19,6 @@ interface CustomRequest extends Request {
   user?: UserInterface;
 }
 
-let tokenGlobal = "";
-
 // FUNCTION
 const signToken = (id: string): string | null => {
   if (!process.env.JWT_SECRET) {
@@ -27,8 +27,6 @@ const signToken = (id: string): string | null => {
   const token: string = jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: "6d",
   });
-
-  tokenGlobal = token;
 
   const encodedToken = jwt.decode(token);
   console.log(
@@ -126,12 +124,6 @@ export const login = async (
   }
 };
 
-interface interfaceDecodedToken {
-  id: string;
-  iat: number;
-  exp: number;
-}
-
 // FUNCTION
 export const protect = async (
   req: CustomRequest,
@@ -177,13 +169,165 @@ export const protect = async (
 
     // 4 : check if the user has change the password after the token was issued
     if (user.checkPasswordChangedAfter(decodedToken.iat as number)) {
-      throw new AppError("User have recently changes the password", 401);
+      if (
+        !user.passwordChangedDate ||
+        !(user.passwordChangedDate instanceof Date)
+      ) {
+        return next(
+          new AppError("passwordChangeDate does not exist on user", 500)
+        );
+      }
+      const dateString: string | Date = user.passwordChangedDate;
+      const date: Date = new Date(dateString);
+      const unixTimestamp: number = Math.floor(date.getTime() / 1000);
+      throw new AppError(
+        `User have recently changes the password. Token issue time (iat) : ${decodedToken.iat} | Password change date : ${unixTimestamp}  `,
+        401
+      );
     }
 
     req.user = user;
 
     next();
   } catch (err) {
+    globalAsyncCatch(err, next);
+  }
+};
+
+// FUNCTION
+export const restrictTo = (rolesArr: string[]) => {
+  return (req: CustomRequest, res: Response, next: NextFunction) => {
+    console.log(rolesArr);
+
+    let flag: boolean = false;
+
+    for (let i = 0; i < rolesArr.length; i++) {
+      if (req?.user?.role === rolesArr[i]) {
+        flag = true;
+      }
+    }
+
+    if (!flag) {
+      return next(
+        new AppError(
+          `${req?.user?.role} is not authorized to delete a course`,
+          403
+        )
+      );
+    }
+
+    next();
+  };
+};
+
+// FUNCTION
+export const forgotPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    // 1 : get user based on e-mail
+    if (!req.body.email) {
+      return next(new AppError("Email must be provided in body", 400));
+    }
+
+    const user = await UserModel.findOne({
+      email: req.body.email,
+    });
+
+    if (!user) {
+      return next(new AppError(`No user for email ${req.body.email}`, 400));
+    }
+
+    // 2 : generate the random reset token
+    const originalResetToken = user.createPasswordResetToken();
+
+    if (!originalResetToken) {
+      return next(new AppError("Error in generating reset token", 500));
+    }
+
+    // 3 : save the user bcz we added some properties on user in above instance method
+    user.save();
+
+    // 3 : send that token to user via email
+    await sendEmail({
+      email: user.email,
+      subject: "Reset token is valid 10 mins only",
+      message: `make request to ${req.protocol}://${req.get(
+        "host"
+      )}/api/users/reset-password/${originalResetToken}`,
+    });
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        message: `Token has been successfully sent to your email ${user?.email}`,
+      },
+    });
+  } catch (err: unknown) {
+    globalAsyncCatch(err, next);
+  }
+};
+
+// FUNCTION
+export const resetPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    // 1 : take the random token out of params
+    const originalRandomToken = req.params.resetToken;
+
+    // 2 : encode that token
+    const encodedToken = crypto
+      .createHash("sha256")
+      .update(originalRandomToken)
+      .digest("hex");
+
+    // 3 : check a user against that token
+    const user: UserInterface | null = await UserModel.findOne({
+      passwordResetToken: encodedToken,
+      passwordResetExpires: { $gte: Date.now() },
+    });
+
+    if (!user) {
+      return next(
+        new AppError("Either invalid token or the token has been expired", 400)
+      );
+    }
+
+    if (!req.body.password || !req.body.confirmPassword) {
+      return next(
+        new AppError(
+          "Either password or confirm password is missing in body",
+          400
+        )
+      );
+    }
+
+    // 4 : update the properties of the user
+    user.password = req.body.password;
+    user.confirmPassword = req.body.confirmPassword;
+    user.passwordChangedDate = new Date(Date.now() + 20000);
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save();
+
+    if (!user._id) {
+      return next(new AppError("_id does not exist on user", 500));
+    }
+
+    // 5 : generate a jwt for login
+    const jwtToken = signToken(user?._id as string);
+
+    res.status(200).json({
+      status: "success",
+      jwtToken,
+      user,
+    });
+  } catch (err: unknown) {
     globalAsyncCatch(err, next);
   }
 };
