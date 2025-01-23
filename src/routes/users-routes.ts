@@ -5,6 +5,8 @@ import {
   signup,
   forgotPassword,
   resetPassword,
+  updatePassword,
+  protect,
 } from "../controllers/auth-controller";
 
 const router: Router = express.Router();
@@ -14,5 +16,6 @@ router.route("/signup").post(signup);
 router.route("/login").post(login);
 router.route("/forgot-password").post(forgotPassword);
 router.route("/reset-password/:resetToken").post(resetPassword);
+router.route("/update-password").patch(updatePassword);
 
 export default router;
