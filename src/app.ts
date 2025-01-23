@@ -8,14 +8,11 @@ import { globalErrorCatcher } from "./utils/global-error-catcher";
 import { rateLimit } from "express-rate-limit";
 import helmet from "helmet";
 import mongoSanitize from "express-mongo-sanitize";
-import xssClean from "xss-clean";
 import hpp from "hpp";
 
 const app = express();
 
 app.use(helmet());
-
-app.use(xssClean());
 
 app.use(mongoSanitize());
 
