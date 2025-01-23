@@ -1,5 +1,8 @@
 import express, { Router } from "express";
-import { getAllUsers } from "../controllers/users-controller";
+import {
+  getAllUsers,
+  updateLoggedUserData,
+} from "../controllers/users-controller";
 import {
   login,
   signup,
@@ -17,5 +20,6 @@ router.route("/login").post(login);
 router.route("/forgot-password").post(forgotPassword);
 router.route("/reset-password/:resetToken").post(resetPassword);
 router.route("/update-password").patch(protect, updatePassword);
+router.route("/update-logged-user-data").patch(protect, updateLoggedUserData);
 
 export default router;
