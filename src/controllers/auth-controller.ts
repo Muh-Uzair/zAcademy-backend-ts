@@ -84,7 +84,7 @@ const cookieAndResponse = (
   }
 
   // 3 : send a response
-  res.status(200).json(actualResponse);
+  res.status(200).json({ ...actualResponse, jwt });
 };
 
 // FUNCTION

@@ -5,13 +5,26 @@ import morgan from "morgan";
 import dotenv from "dotenv";
 import { AppError } from "./utils/app-error";
 import { globalErrorCatcher } from "./utils/global-error-catcher";
+import { rateLimit } from "express-rate-limit";
+
 const app = express();
+
 dotenv.config({ path: "./config.env" });
+
 app.use(express.json());
+
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
 
+const limiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 15 minutes
+  limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
+  standardHeaders: "draft-8", // draft-6: `RateLimit-*` headers; draft-7 & draft-8: combined `RateLimit` header
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
+});
+
+app.use(limiter);
 app.use("/api/courses", coursesRouter);
 app.use("/api/users", userRouter);
 
