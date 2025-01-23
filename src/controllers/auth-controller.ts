@@ -332,71 +332,133 @@ export const resetPassword = async (
   }
 };
 
-// FUNCTION logged in user updates password
+// FUNCTION logged in user updates password my written
+// export const updatePassword = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction
+// ): Promise<void> => {
+//   try {
+//     // 1 : tke the jwt token from headers
+//     const receivedJwtToken: string | undefined | null =
+//       req.headers.authorization?.split(" ")[1];
+
+//     if (!receivedJwtToken) {
+//       return next(
+//         new AppError("Jwt token was not provided in request headers", 400)
+//       );
+//     }
+
+//     // 2 : check the validity of received token
+//     const jwtSecret: string | null | undefined = process.env.JWT_SECRET;
+
+//     if (!jwtSecret) {
+//       return next(new AppError("Unable to get jwt secret", 500));
+//     }
+
+//     // 3 : verify the received toke
+//     const decodedToken = jwt.verify(receivedJwtToken, jwtSecret);
+
+//     if (!decodedToken || typeof decodedToken !== "object") {
+//       return next(new AppError("Invalid jwt", 401));
+//     }
+
+//     // 4 : check wether the token has expired or not
+//     if (decodedToken.exp && decodedToken?.exp < Math.floor(Date.now() / 1000)) {
+//       return next(new AppError("The current token has been expired", 401));
+//     }
+
+//     // 5 : if token is not expired than set/update the password to received password
+//     if (!req.body.password || !req.body.confirmPassword) {
+//       return next(
+//         new AppError(
+//           "Provide password and confirmPassword both in request body",
+//           400
+//         )
+//       );
+//     }
+
+//     const user: UserInterface | null | undefined = await UserModel.findById(
+//       decodedToken?.id
+//     );
+
+//     if (!user) {
+//       return next(new AppError("No user for provided jwt", 401));
+//     }
+
+//     user.password = req.body.password;
+//     user.confirmPassword = req.body.confirmPassword;
+//     user.passwordChangedDate = new Date(Date.now() + 20000);
+//     await user.save();
+
+//     const jwtToken = signToken(user._id as string);
+
+//     res.status(200).json({
+//       status: "success",
+//       data: {
+//         jwtToken: receivedJwtToken,
+//         user,
+//       },
+//     });
+//   } catch (err: unknown) {
+//     globalAsyncCatch(err, next);
+//   }
+// };
+
+// FUNCTION update logged in user password jonas
 export const updatePassword = async (
-  req: Request,
+  req: CustomRequest,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    // 1 : tke the jwt token from headers
-    const receivedJwtToken: string | undefined | null =
-      req.headers.authorization?.split(" ")[1];
-
-    if (!receivedJwtToken) {
-      return next(
-        new AppError("Jwt token was not provided in request headers", 400)
-      );
+    // 1 :  take the use from the request object
+    if (!req.user || !req.user.id) {
+      return next(new AppError("Provide user on req object", 400));
     }
 
-    // 2 : check the validity of received token
-    const jwtSecret: string | null | undefined = process.env.JWT_SECRET;
+    console.log("Hello 1");
 
-    if (!jwtSecret) {
-      return next(new AppError("Unable to get jwt secret", 500));
-    }
-
-    // 3 : verify the received toke
-    const decodedToken = jwt.verify(receivedJwtToken, jwtSecret);
-
-    if (!decodedToken || typeof decodedToken !== "object") {
-      return next(new AppError("Invalid jwt", 401));
-    }
-
-    // 4 : check wether the token has expired or not
-    if (decodedToken.exp && decodedToken?.exp < Math.floor(Date.now() / 1000)) {
-      return next(new AppError("The current token has been expired", 401));
-    }
-
-    // 5 : if token is not expired than set/update the password to received password
-    if (!req.body.password || !req.body.confirmPassword) {
-      return next(
-        new AppError(
-          "Provide password and confirmPassword both in request body",
-          400
-        )
-      );
-    }
-
-    const user: UserInterface | null | undefined = await UserModel.findById(
-      decodedToken?.id
-    );
+    const user = await UserModel.findById(req.user.id).select("+password");
 
     if (!user) {
-      return next(new AppError("No user for provided jwt", 401));
+      return next(new AppError("No user found", 401));
     }
 
+    console.log("Hello 2");
+
+    // 2 :  check that the current password in req body matched the one stored in db
+    if (!req.body.currentPassword) {
+      return next(new AppError("Provide current password on user object", 400));
+    }
+    const passwordMatch = await user.comparePassword(req.body.currentPassword);
+
+    if (!passwordMatch) {
+      return next(new AppError("Provided current password is incorrect", 401));
+    }
+
+    console.log("Hello 3");
+
+    // 3 :  update properties on user object
     user.password = req.body.password;
     user.confirmPassword = req.body.confirmPassword;
     user.passwordChangedDate = new Date(Date.now() + 20000);
     await user.save();
 
-    const jwtToken = signToken(user._id as string);
+    console.log("Hello 4");
 
+    // 4 :  generate token
+    if (!user.id) {
+      return next(new AppError("No id on user object", 500));
+    }
+
+    const jwt = signToken(user?._id as string);
+
+    // 5 : send response
     res.status(200).json({
       status: "success",
       data: {
-        jwtToken: receivedJwtToken,
+        jwt,
         user,
       },
     });

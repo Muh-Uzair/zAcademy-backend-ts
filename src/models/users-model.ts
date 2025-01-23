@@ -20,6 +20,7 @@ interface UserInterface extends Document {
 interface UserInterfaceMethods {
   checkPasswordChangedAfter(tokenIssueDate: number): boolean;
   createPasswordResetToken(): string;
+  comparePassword(incomingPassword: string): Promise<boolean>;
 }
 
 type TypeUserModel = Model<UserInterface, {}, UserInterfaceMethods>;
@@ -170,6 +171,16 @@ userSchema.method("createPasswordResetToken", function (): string {
   // 4 : return that original token
   return resetToken;
 });
+
+// FUNCTION compare the stored password with incoming password
+userSchema.method(
+  "comparePassword",
+  async function (incomingPassword): Promise<boolean> {
+    console.log(incomingPassword);
+    console.log(this.password);
+    return await bcrypt.compare(incomingPassword, this.password);
+  }
+);
 
 // Create the User model
 const UserModel = model<UserInterface, TypeUserModel>("User", userSchema);

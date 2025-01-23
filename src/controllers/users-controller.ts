@@ -15,3 +15,15 @@ export const getAllUsers = (
     },
   });
 };
+
+// FUNCTION update the currently logged in user
+export const updateLoggedUserData = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+  } catch (err) {
+    globalAsyncCatch(err, next);
+  }
+};
