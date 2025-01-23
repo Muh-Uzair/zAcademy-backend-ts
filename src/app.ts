@@ -6,12 +6,15 @@ import dotenv from "dotenv";
 import { AppError } from "./utils/app-error";
 import { globalErrorCatcher } from "./utils/global-error-catcher";
 import { rateLimit } from "express-rate-limit";
+import helmet from "helmet";
 
 const app = express();
 
+app.use(helmet());
+
 dotenv.config({ path: "./config.env" });
 
-app.use(express.json());
+app.use(express.json({ limit: "10kb" }));
 
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
