@@ -7,14 +7,23 @@ import { AppError } from "./utils/app-error";
 import { globalErrorCatcher } from "./utils/global-error-catcher";
 import { rateLimit } from "express-rate-limit";
 import helmet from "helmet";
+import mongoSanitize from "express-mongo-sanitize";
+import xssClean from "xss-clean";
+import hpp from "hpp";
 
 const app = express();
 
 app.use(helmet());
 
+app.use(xssClean());
+
+app.use(mongoSanitize());
+
 dotenv.config({ path: "./config.env" });
 
 app.use(express.json({ limit: "10kb" }));
+
+app.use(hpp());
 
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
