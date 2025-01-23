@@ -8,6 +8,7 @@ import { sendEmail } from "../routes/email";
 import { globalAsyncCatch } from "../utils/global-async-catch";
 import { AppError } from "../utils/app-error";
 import { UserInterface, UserModel } from "../models/users-model";
+import { isJWT } from "validator";
 
 interface interfaceDecodedToken {
   id: string;
@@ -48,6 +49,45 @@ const signToken = (id: string): string | null => {
 };
 
 // FUNCTION
+const cookieAndResponse = (
+  res: Response,
+  next: NextFunction,
+  actualResponse: object,
+  id: string
+) => {
+  // 1 : sign a token
+  const jwt: string | null = signToken(id);
+
+  if (!jwt) {
+    return next(new AppError("Unable to generate jwt token", 500));
+  }
+
+  // 2 : send it in cookie
+  if (process.env.NODE_ENV === "production") {
+    res.cookie("jwt", jwt, {
+      expires: new Date(
+        Date.now() +
+          Number(process.env.COOKIE_EXPIRES_TIME) * 24 * 60 * 60 * 1000
+      ),
+      secure: true,
+      httpOnly: true,
+    });
+  }
+  if (process.env.NODE_ENV === "development") {
+    res.cookie("jwt", jwt, {
+      expires: new Date(
+        Date.now() +
+          +Number(process.env.COOKIE_EXPIRES_TIME) * 24 * 60 * 60 * 1000
+      ),
+      httpOnly: true,
+    });
+  }
+
+  // 3 : send a response
+  res.status(200).json(actualResponse);
+};
+
+// FUNCTION
 export const signup = async (
   req: Request,
   res: Response,
@@ -61,20 +101,19 @@ export const signup = async (
     if (!process.env.JWT_SECRET) {
       throw new Error("JWT_SECRET is not defined");
     }
-    const token: string | null = signToken(newUser.id);
-    console.log(token);
 
-    if (!token) {
-      return next(new AppError("Unable to generate jwt token", 500));
-    }
-    // 3 : send a response with JWT token
-    res.status(200).json({
-      status: "success",
-      jwtToken: token,
-      data: {
-        newUser,
+    // 3 : send a response with JWT  in cookie
+    cookieAndResponse(
+      res,
+      next,
+      {
+        status: "success",
+        data: {
+          newUser,
+        },
       },
-    });
+      newUser.id
+    );
   } catch (error: unknown) {
     globalAsyncCatch(error, next);
   }
