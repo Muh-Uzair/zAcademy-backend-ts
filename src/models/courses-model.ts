@@ -1,5 +1,7 @@
 import { Schema, model, Document } from "mongoose";
 
+// before s 11
+
 // Define the interface for the Course document
 interface CourseInterface extends Document {
   createdAt: Date;
@@ -101,7 +103,7 @@ const courseSchema = new Schema<CourseInterface>(
     timestamps: true,
     versionKey: false,
     strict: true,
-  },
+  }
 );
 
 // virtual properties
