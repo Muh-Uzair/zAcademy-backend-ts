@@ -8,17 +8,22 @@ interface CustomRequest extends Request {
 }
 
 // FUNCTION
-export const getAllUsers = (
+export const getAllUsers = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
-  res.status(200).json({
-    status: "success",
-    data: {
-      message: "/api/user get 200",
-    },
-  });
+): Promise<void> => {
+  try {
+    const allUsers = await UserModel.find().populate("associatedCourses");
+    res.status(200).json({
+      status: "success",
+      data: {
+        allUsers,
+      },
+    });
+  } catch (err: unknown) {
+    globalAsyncCatch(err, next);
+  }
 };
 
 interface InterfaceUpdateObject {

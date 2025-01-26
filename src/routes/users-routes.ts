@@ -10,11 +10,12 @@ import {
   resetPassword,
   updatePassword,
   protect,
+  restrictTo,
 } from "../controllers/auth-controller";
 
 const router: Router = express.Router();
 
-router.route("/").get(getAllUsers);
+router.route("/").get(protect, restrictTo(["teacher"]), getAllUsers);
 router.route("/signup").post(signup);
 router.route("/login").post(login);
 router.route("/forgot-password").post(forgotPassword);

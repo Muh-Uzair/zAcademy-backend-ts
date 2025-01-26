@@ -126,7 +126,7 @@ const userSchema = new Schema<
     passwordResetExpires: {
       type: Date,
     },
-    associatedCourses: [{ type: Schema.Types.ObjectId, ref: "Courses" }],
+    associatedCourses: [{ type: Schema.Types.ObjectId, ref: "Course" }],
     location: {
       type: {
         type: String,

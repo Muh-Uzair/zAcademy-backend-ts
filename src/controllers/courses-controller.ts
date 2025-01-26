@@ -91,10 +91,6 @@ export const createCourse = async (
     }
 
     // 5 : associate the course
-    console.log(
-      "_______________________________________________________________"
-    );
-    console.log(instructor.associatedCourses);
     const updatedInstructor = await UserModel.findByIdAndUpdate(
       instructor?._id,
       {
@@ -110,6 +106,7 @@ export const createCourse = async (
       status: "success",
       data: {
         newCreatedCourse,
+        updatedInstructor,
       },
     });
   } catch (error: unknown) {
