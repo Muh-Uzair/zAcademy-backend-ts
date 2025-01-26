@@ -248,8 +248,6 @@ export const protect = async (
 // FUNCTION
 export const restrictTo = (rolesArr: string[]) => {
   return (req: CustomRequest, res: Response, next: NextFunction) => {
-    console.log(rolesArr);
-
     let flag: boolean = false;
 
     for (let i = 0; i < rolesArr.length; i++) {

@@ -14,8 +14,6 @@ interface InterfaceReqBody {
 export const checkInvalidProperties = (reqBody: InterfaceReqBody) => {
   let flag = false;
 
-  console.log("Hello from helper");
-
   if (
     reqBody._id ||
     reqBody.id ||

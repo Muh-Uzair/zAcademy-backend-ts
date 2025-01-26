@@ -2,13 +2,16 @@ import mongoose, { Schema, model, Document } from "mongoose";
 import { maxHeaderSize } from "node:http";
 import { isAlpha, isEmail, isNumber } from "../utils/validation-functions";
 
-// Define the interface for the Course document
+interface InterfaceLocation {
+  type: string;
+  location: Number[];
+}
+
 interface InterfaceInstructor {
   name: string;
   email: string;
   qualification?: string;
-  type: string;
-  coordinates: number[];
+  location: InterfaceLocation;
 }
 
 interface CourseInterface extends Document {
@@ -53,48 +56,54 @@ const courseSchema = new Schema<CourseInterface>(
     instructor: {
       name: {
         type: String,
-        required: [true, "Instructor must have a name"],
-        minLength: [10, "Instructor name should be at least 10 characters"],
-        maxLength: [50, "Instructor name should not exceed 50 characters"],
+        required: [true, "Name is required"],
+        trim: true,
+        minlength: [3, "Name must be at least 3 characters long"],
+        maxlength: [50, "Name must be less than 50 characters long"],
         validate: {
-          validator: (value: string) => isAlpha(value),
-          message: "Instructor name must contain only alphabetic characters",
+          validator: (val: string) => isAlpha(val),
+          message: "Name must contain only alphabetic characters and spaces",
         },
       },
       email: {
         type: String,
-        required: [true, "Instructor must have an email"],
-        unique: [true, "Instructor email must be unique"],
-        minLength: [10, "Instructor email should be at least 10 characters"],
-        maxLength: [50, "Instructor email should not exceed 50 characters"],
+        required: [true, "Email is required"],
+        trim: true,
+        unique: true,
         validate: {
-          validator: (value: string) => isEmail(value),
-          message: "Instructor name must contain only alphabetic characters",
+          validator: (val: string) => isEmail(val),
+          message: (props) => `${props.value} is not a valid email address!`,
         },
       },
       qualification: {
         type: String,
-        minLength: [
-          3,
-          "Instructor qualification should be at least 3 characters",
-        ],
-        maxLength: [
-          20,
-          "Instructor qualification should not exceed 20 characters",
-        ],
+        trim: true,
+        minlength: [10, "Qualification must be at least 10 characters long"],
+        maxlength: [100, "Qualification must be less than 100 characters long"],
         validate: {
-          validator: (value: string) => isAlpha(value),
-          message: "qualification must contain only alphabetic characters",
+          validator: (val: string) => isAlpha(val),
+          message:
+            "Qualification must contain only alphabetic characters and spaces",
         },
       },
-      type: {
-        type: String,
-        default: "Point",
-        enum: ["Point"],
-      },
-      coordinates: {
-        type: [Number],
-        required: [true, "Instructor must have coordinates"],
+      location: {
+        type: {
+          type: String,
+          default: "Point",
+          enum: ["Point"],
+          required: [true, "Location type is required"],
+        },
+        coordinates: {
+          type: [Number],
+          required: [true, "User must provide location coordinates"],
+          validate: {
+            validator: function (value: number[]) {
+              return value && value.length === 2;
+            },
+            message:
+              "Coordinates must be an array of two numbers [longitude, latitude]",
+          },
+        },
       },
     },
     summary: {

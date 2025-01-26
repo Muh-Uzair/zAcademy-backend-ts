@@ -3,7 +3,7 @@ import { CourseInterface, CourseModel } from "../models/courses-model";
 import { apiFeatures } from "../utils/api-features";
 import { AppError } from "../utils/app-error";
 import { globalAsyncCatch } from "../utils/global-async-catch";
-import { UserInterface } from "../models/users-model";
+import { UserInterface, UserModel } from "../models/users-model";
 
 interface CustomRequest extends Request {
   user?: UserInterface;
@@ -58,12 +58,54 @@ export const getAllCourses = async (
 
 // FUNCTION
 export const createCourse = async (
-  req: Request,
+  req: CustomRequest,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const newCreatedCourse = await CourseModel.create(req.body);
+    // 1 : check for the user in request object
+    if (!req.user?.id) {
+      next(new AppError("No user in request oject", 500));
+    }
+
+    // 2 : take the id out of the request body
+    const authUserId = req.user?.id;
+
+    // 3 : take the user object from the DB
+    const instructor = await UserModel.findById(authUserId).select(
+      "name email qualification location associatedCourses"
+    );
+
+    if (!instructor) {
+      return next(new AppError("Error in finding user with provided id", 500));
+    }
+
+    // 4 : create the course
+    const newCreatedCourse = await CourseModel.create({
+      ...req.body,
+      instructor,
+    });
+
+    if (!newCreatedCourse) {
+      return next(new AppError("Error in creating course", 500));
+    }
+
+    // 5 : associate the course
+    console.log(
+      "_______________________________________________________________"
+    );
+    console.log(instructor.associatedCourses);
+    const updatedInstructor = await UserModel.findByIdAndUpdate(
+      instructor?._id,
+      {
+        associatedCourses: [
+          ...(instructor?.associatedCourses || []),
+          newCreatedCourse?._id,
+        ],
+      },
+      { returnDocument: "after", runValidators: true }
+    );
+
     res.status(201).json({
       status: "success",
       data: {

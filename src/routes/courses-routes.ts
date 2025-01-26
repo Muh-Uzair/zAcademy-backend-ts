@@ -19,7 +19,10 @@ const router: Router = express.Router();
 
 router.param("id", checkIdValid);
 
-router.route("/").get(protect, getAllCourses).post(createCourse);
+router
+  .route("/")
+  .get(protect, getAllCourses)
+  .post(protect, restrictTo(["admin", "teacher"]), createCourse);
 router.route("/courses-stats").get(getCoursesStats);
 router.route("/top-5-courses").get(aliasTop5Courses, getAllCourses);
 router.route("/top-5-cheapest").get(aliasTop5Cheapest, getAllCourses);

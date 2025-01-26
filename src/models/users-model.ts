@@ -8,6 +8,11 @@ import {
   isPhoto,
 } from "../utils/validation-functions";
 
+interface InterfaceLocation {
+  type: string;
+  location: Number[];
+}
+
 // Define the User interface
 interface UserInterface extends Document {
   photo?: string;
@@ -21,6 +26,8 @@ interface UserInterface extends Document {
   passwordResetToken?: string | undefined;
   passwordResetExpires?: Date | undefined;
   associatedCourses?: mongoose.Types.ObjectId[];
+  location: InterfaceLocation;
+  qualification?: string;
 }
 
 interface UserInterfaceMethods {
@@ -120,6 +127,36 @@ const userSchema = new Schema<
       type: Date,
     },
     associatedCourses: [{ type: Schema.Types.ObjectId, ref: "Courses" }],
+    location: {
+      type: {
+        type: String,
+        default: "Point",
+        enum: ["Point"],
+        required: [true, "Location type is required"],
+      },
+      coordinates: {
+        type: [Number],
+        required: [true, "User must provide location coordinates"],
+        validate: {
+          validator: function (value: number[]) {
+            return value && value.length === 2;
+          },
+          message:
+            "Coordinates must be an array of two numbers [longitude, latitude]",
+        },
+      },
+    },
+    qualification: {
+      type: String,
+      trim: true,
+      minlength: [10, "Qualification must be at least 10 characters long"],
+      maxlength: [100, "Qualification must be less than 100 characters long"],
+      validate: {
+        validator: (val: string) => isAlpha(val),
+        message:
+          "Qualification must contain only alphabetic characters and spaces",
+      },
+    },
   },
   {
     timestamps: true,
