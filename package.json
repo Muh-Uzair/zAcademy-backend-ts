@@ -24,8 +24,7 @@
     "morgan": "^1.10.0",
     "nodemailer": "^6.9.16",
     "ts-node": "^10.9.2",
-    "typescript": "^5.7.2",
-    "validator": "^13.12.0"
+    "typescript": "^5.7.2"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -38,7 +37,6 @@
     "@types/morgan": "^1.9.9",
     "@types/node": "^22.10.2",
     "@types/nodemailer": "^6.4.17",
-    "@types/validator": "^13.12.2",
     "globals": "^15.14.0",
     "nodemon": "^3.1.9"
   }

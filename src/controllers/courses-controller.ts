@@ -43,18 +43,18 @@ export const getAllCourses = async (
   }
 };
 
-// FUNCTION
-export const checkIdExist = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void => {
-  if (req.body?.id) {
-    next(new AppError("id should not be sent when creating course", 400));
-  } else {
-    next();
-  }
-};
+// // FUNCTION
+// export const checkIdExist = (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction
+// ): void => {
+//   if (req.body?.id) {
+//     next(new AppError("id should not be sent when creating course", 400));
+//   } else {
+//     next();
+//   }
+// };
 
 // FUNCTION
 export const createCourse = async (

@@ -9,6 +9,7 @@ import { rateLimit } from "express-rate-limit";
 import helmet from "helmet";
 import mongoSanitize from "express-mongo-sanitize";
 import hpp from "hpp";
+import { checkInvalidProperties } from "./utils/helpers";
 
 const app = express();
 
@@ -34,6 +35,16 @@ const limiter = rateLimit({
 });
 
 app.use(limiter);
+
+app.use((req: Request, res: Response, next: NextFunction) => {
+  if (checkInvalidProperties(req.body)) {
+    return next(
+      new AppError("Invalid properties [_id, id, createdAt, updatedAt]", 400)
+    );
+  }
+
+  next();
+});
 app.use("/api/courses", coursesRouter);
 app.use("/api/users", userRouter);
 

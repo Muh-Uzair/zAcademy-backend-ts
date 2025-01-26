@@ -1,7 +1,12 @@
-import { Document, Model, Schema, model } from "mongoose";
-import * as validator from "validator";
+import mongoose, { Document, Model, Schema, model } from "mongoose";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
+import {
+  isAlpha,
+  isEmail,
+  isPhoneNumber,
+  isPhoto,
+} from "../utils/validation-functions";
 
 // Define the User interface
 interface UserInterface extends Document {
@@ -15,6 +20,7 @@ interface UserInterface extends Document {
   role: string;
   passwordResetToken?: string | undefined;
   passwordResetExpires?: Date | undefined;
+  associatedCourses?: mongoose.Types.ObjectId[];
 }
 
 interface UserInterfaceMethods {
@@ -37,9 +43,7 @@ const userSchema = new Schema<
       type: String,
       trim: true,
       validate: {
-        validator: function (v: string) {
-          return /^https?:\/\/.+\.(jpg|jpeg|png|gif)$/.test(v); // Example validation for a URL ending with an image extension
-        },
+        validator: (val: string) => isPhoto(val),
         message: (props) => `${props.value} is not a valid photo URL!`,
       },
     },
@@ -49,13 +53,20 @@ const userSchema = new Schema<
       trim: true,
       minlength: [3, "Name must be at least 3 characters long"],
       maxlength: [50, "Name must be less than 50 characters long"],
+      validate: {
+        validator: (val: string) => isAlpha(val),
+        message: "Name must contain only alphabetic characters and spaces",
+      },
     },
     email: {
       type: String,
       required: [true, "Email is required"],
       trim: true,
       unique: true,
-      validate: [validator.isEmail, "Please enter a valid email address"],
+      validate: {
+        validator: (val: string) => isEmail(val),
+        message: (props) => `${props.value} is not a valid email address!`,
+      },
     },
     phoneNumber: {
       type: String,
@@ -63,9 +74,7 @@ const userSchema = new Schema<
       trim: true,
       unique: [true, "Phone number must be unique"],
       validate: {
-        validator: function (v: string) {
-          return /^\d{11}$/.test(v);
-        },
+        validator: (val: string) => isPhoneNumber(val),
         message: (props) => `${props.value} is not a valid phone number!`,
       },
     },
@@ -99,6 +108,10 @@ const userSchema = new Schema<
           "invalid role {VALUE}, valid roles are admin, teacher, student",
       },
       default: "student",
+      validate: {
+        validator: (value: string) => isAlpha(value),
+        message: (props) => `${props.value} is not a valid role!`,
+      },
     },
     passwordResetToken: {
       type: String,
@@ -106,6 +119,7 @@ const userSchema = new Schema<
     passwordResetExpires: {
       type: Date,
     },
+    associatedCourses: [{ type: Schema.Types.ObjectId, ref: "Courses" }],
   },
   {
     timestamps: true,
@@ -121,8 +135,7 @@ const userSchema = new Schema<
   }
 );
 
-// FUNCTION
-// Pre-save middleware
+// FUNCTION pre-save MW
 userSchema.pre("save", async function (next): Promise<void> {
   // if user have modified the password than encrypt it again
   if (!this.isModified("password")) {

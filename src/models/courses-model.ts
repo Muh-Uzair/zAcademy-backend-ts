@@ -1,21 +1,29 @@
-import { Schema, model, Document } from "mongoose";
-
-// before s 11
+import mongoose, { Schema, model, Document } from "mongoose";
+import { maxHeaderSize } from "node:http";
+import { isAlpha, isEmail, isNumber } from "../utils/validation-functions";
 
 // Define the interface for the Course document
+interface InterfaceInstructor {
+  name: string;
+  email: string;
+  qualification?: string;
+  type: string;
+  coordinates: number[];
+}
+
 interface CourseInterface extends Document {
   createdAt: Date;
-  id: number;
-  coverImage: string;
+  coverImage?: string;
   name: string;
-  instructor: string;
+  instructor: InterfaceInstructor;
   summary: string;
   difficulty: string;
   duration: number;
-  averageRating: number;
+  averageRating?: number;
   ratingsQuantity: number;
   price: number;
-  discount: number;
+  discount?: number;
+  students?: mongoose.Types.ObjectId[];
 }
 
 // Define the schema for the Course model
@@ -26,13 +34,8 @@ const courseSchema = new Schema<CourseInterface>(
       default: Date.now(),
       select: false,
     },
-    id: {
-      type: Number,
-      unique: [true, "Every course must have a unique id"],
-    },
     coverImage: {
       type: String,
-      required: [true, "A course must have a cover image"],
     },
     name: {
       type: String,
@@ -42,14 +45,57 @@ const courseSchema = new Schema<CourseInterface>(
       unique: [true, "Every course must have a unique name"],
       minlength: [10, "A course name should be at least 10 characters"],
       maxLength: [50, "A course name should not exceed 50 characters"],
+      validate: {
+        validator: (value: string) => isAlpha(value),
+        message: "Course name must contain only alphabetic characters",
+      },
     },
     instructor: {
-      type: String,
-      trim: true,
-      lowercase: true,
-      required: [true, "A course must have an instructor name"],
-      minlength: [5, "Instructor name should not be be less than 5 character"],
-      maxLength: [20, "Instructor name should not exceed 20 character"],
+      name: {
+        type: String,
+        required: [true, "Instructor must have a name"],
+        minLength: [10, "Instructor name should be at least 10 characters"],
+        maxLength: [50, "Instructor name should not exceed 50 characters"],
+        validate: {
+          validator: (value: string) => isAlpha(value),
+          message: "Instructor name must contain only alphabetic characters",
+        },
+      },
+      email: {
+        type: String,
+        required: [true, "Instructor must have an email"],
+        unique: [true, "Instructor email must be unique"],
+        minLength: [10, "Instructor email should be at least 10 characters"],
+        maxLength: [50, "Instructor email should not exceed 50 characters"],
+        validate: {
+          validator: (value: string) => isEmail(value),
+          message: "Instructor name must contain only alphabetic characters",
+        },
+      },
+      qualification: {
+        type: String,
+        minLength: [
+          3,
+          "Instructor qualification should be at least 3 characters",
+        ],
+        maxLength: [
+          20,
+          "Instructor qualification should not exceed 20 characters",
+        ],
+        validate: {
+          validator: (value: string) => isAlpha(value),
+          message: "qualification must contain only alphabetic characters",
+        },
+      },
+      type: {
+        type: String,
+        default: "Point",
+        enum: ["Point"],
+      },
+      coordinates: {
+        type: [Number],
+        required: [true, "Instructor must have coordinates"],
+      },
     },
     summary: {
       type: String,
@@ -61,6 +107,10 @@ const courseSchema = new Schema<CourseInterface>(
         50,
         "A course summary should not exceed than 100 50 characters",
       ],
+      validate: {
+        validator: (value: string) => isAlpha(value),
+        message: "Summary must contain only alphabetic characters",
+      },
     },
     difficulty: {
       type: String,
@@ -77,25 +127,54 @@ const courseSchema = new Schema<CourseInterface>(
       required: [true, "A course must have a duration"],
       min: [1, "Course duration not be less than 1 hour"],
       max: [200, "Course above 200 hours are not supported"],
+      validate: {
+        validator: (value: number) => isNumber(value),
+        message: "Duration can only contain numbers",
+      },
     },
     averageRating: {
       type: Number,
       default: 0,
       min: [0, "Average rating of course should not be less than 0"],
       max: [5, "Average rating should not exceed 5"],
+      validate: {
+        validator: (value: number) => isNumber(value),
+        message: "Average rating can only contain numbers",
+      },
     },
     ratingsQuantity: {
       type: Number,
       default: 0,
+      validate: {
+        validator: (value: number) => isNumber(value),
+        message: "Ratings quantity can only contain numbers",
+      },
     },
     price: {
       type: Number,
       required: [true, "A course must have price"],
+      validate: {
+        validator: (value: number) => isNumber(value),
+        message: "Price can only contain numbers",
+      },
     },
     discount: {
       type: Number,
       default: 0,
+      validate: [
+        {
+          validator: (value: number) => isNumber(value),
+          message: "Discount must be a number",
+        },
+        {
+          validator: function (value: number) {
+            return value <= this.price;
+          },
+          message: "Discount should not be grater than actual price",
+        },
+      ],
     },
+    students: [{ type: Schema.Types.ObjectId, ref: "Users" }],
   },
   {
     toObject: { virtuals: true },

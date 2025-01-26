@@ -7,7 +7,6 @@ import { sendEmail } from "../routes/email";
 import { globalAsyncCatch } from "../utils/global-async-catch";
 import { AppError } from "../utils/app-error";
 import { UserInterface, UserModel } from "../models/users-model";
-import { isJWT } from "validator";
 
 interface interfaceDecodedToken {
   id: string;
@@ -93,7 +92,21 @@ export const signup = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    // 1 : create a user in DB with encrypted passwords
+    // 1 : take the role from the request body
+    const role = req.body?.role;
+
+    // 2 : check if role is provided
+    if (!role) {
+      return next(new AppError("Provide role to signup", 400));
+    }
+
+    console.log(role === "teacher");
+
+    // 3 : check if role is teacher or student
+    if (role !== "teacher" && role !== "student") {
+      return next(new AppError("Role can only be teacher or student", 400));
+    }
+
     const newUser: UserInterface = await UserModel.create(req.body);
 
     // 2 : sign a JWT token
