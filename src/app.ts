@@ -1,15 +1,17 @@
 import express, { Request, Response, NextFunction } from "express";
-import coursesRouter from "./routes/courses-routes";
-import userRouter from "./routes/users-routes";
 import morgan from "morgan";
 import dotenv from "dotenv";
-import { AppError } from "./utils/app-error";
-import { globalErrorCatcher } from "./utils/global-error-catcher";
-import { rateLimit } from "express-rate-limit";
 import helmet from "helmet";
 import mongoSanitize from "express-mongo-sanitize";
 import hpp from "hpp";
+import { AppError } from "./utils/app-error";
+import { globalErrorCatcher } from "./utils/global-error-catcher";
+import { rateLimit } from "express-rate-limit";
 import { checkInvalidProperties } from "./utils/helpers";
+
+import coursesRouter from "./routes/courses-routes";
+import userRouter from "./routes/users-routes";
+import reviewRouter from "./routes/review-routes";
 
 const app = express();
 
@@ -47,6 +49,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 app.use("/api/courses", coursesRouter);
 app.use("/api/users", userRouter);
+app.use("/api/reviews", reviewRouter);
 
 app.all("*", (req: Request, res: Response, next: NextFunction) => {
   next(

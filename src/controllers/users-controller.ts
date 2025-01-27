@@ -14,7 +14,7 @@ export const getAllUsers = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const allUsers = await UserModel.find().populate("associatedCourses");
+    const allUsers = await UserModel.find();
     res.status(200).json({
       status: "success",
       data: {
