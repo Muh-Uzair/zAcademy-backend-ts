@@ -12,6 +12,7 @@ import {
   getCoursesStats,
   getBestCourse,
   checkDiscountValid,
+  buyCourse,
 } from "../controllers/courses-controller";
 import { protect, restrictTo } from "../controllers/auth-controller";
 
@@ -28,6 +29,9 @@ router.route("/top-5-courses").get(aliasTop5Courses, getAllCourses);
 router.route("/top-5-cheapest").get(aliasTop5Cheapest, getAllCourses);
 router.route("/top-5-longest").get(aliasTop5Longest, getAllCourses);
 router.route("/best-course").get(getBestCourse);
+router
+  .route("/buy-course")
+  .patch(protect, restrictTo(["admin", "student"]), buyCourse);
 
 router
   .route("/:id")

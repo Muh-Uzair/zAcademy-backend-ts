@@ -10,6 +10,6 @@ const router: Router = express.Router();
 router
   .route("/")
   .get(getAllReviews)
-  .post(protect, restrictTo(["admin", "teacher"]), createNewReview);
+  .post(protect, restrictTo(["admin", "student"]), createNewReview);
 
 export default router;

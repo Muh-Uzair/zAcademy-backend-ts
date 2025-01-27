@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { UserInterface, UserModel } from "../models/users-model";
 import { globalAsyncCatch } from "../utils/global-async-catch";
 import { AppError } from "../utils/app-error";
+import { errorMonitor } from "events";
 
 interface CustomRequest extends Request {
   user?: UserInterface;

@@ -344,3 +344,63 @@ export const aliasTop5Longest = (
 
   next();
 };
+
+// FUNCTION
+export const paymentConfirmed = (): boolean => {
+  return true;
+};
+
+// FUNCTION
+export const buyCourse = async (
+  req: CustomRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    // 1 : check if payment is confirmed
+    if (!paymentConfirmed()) {
+      return next(new AppError("Payment not confirmed", 400));
+    }
+
+    // 2 : update the course and user
+    if (!req.query.courseId) {
+      return next(new AppError("Course id not provided", 400));
+    }
+
+    const { courseId } = req.query;
+
+    const updatedCourse = await CourseModel.findByIdAndUpdate(
+      courseId,
+      { $addToSet: { students: req.user?.id } },
+      { returnDocument: "after", runValidators: true }
+    );
+
+    if (!updatedCourse) {
+      return next(new AppError("Error in updating course", 500));
+    }
+
+    // 3 : update the user
+    if (!req.user?.id) {
+      return next(new AppError("User id not found in request object", 500));
+    }
+    const updatedUser = await UserModel.findByIdAndUpdate(
+      req.user?.id,
+      { $addToSet: { associatedCourses: updatedCourse._id } },
+      { returnDocument: "after", runValidators: true }
+    );
+
+    if (!updatedUser) {
+      return next(new AppError("Error in updating user", 500));
+    }
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        updatedCourse,
+        updatedUser,
+      },
+    });
+  } catch (err: unknown) {
+    globalAsyncCatch(err, next);
+  }
+};

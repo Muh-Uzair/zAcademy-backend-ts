@@ -259,7 +259,7 @@ export const restrictTo = (rolesArr: string[]) => {
     if (!flag) {
       return next(
         new AppError(
-          `${req?.user?.role} is not authorized to delete a course`,
+          `${req?.user?.role} is not authorized to perform this action`,
           403
         )
       );
