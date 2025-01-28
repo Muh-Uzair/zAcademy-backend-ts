@@ -15,7 +15,7 @@ import {
 
 const router: Router = express.Router();
 
-router.route("/").get(protect, restrictTo(["teacher"]), getAllUsers);
+router.route("/").get(protect, restrictTo(["admin", "teacher"]), getAllUsers);
 router.route("/signup").post(signup);
 router.route("/login").post(login);
 router.route("/forgot-password").post(forgotPassword);
