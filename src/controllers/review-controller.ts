@@ -9,16 +9,22 @@ interface CustomRequest extends Request {
 }
 
 // FUNCTION
-export const getAllReviews = (
+export const getAllReviews = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Promise<void> => {
   try {
+    const allReviews = await ReviewModel.find();
+
+    if (!allReviews) {
+      return next(new AppError("Unable to get reviews", 500));
+    }
+
     res.status(200).json({
       status: "success",
       data: {
-        message: "/api/reviews get",
+        allReviews,
       },
     });
   } catch (err: unknown) {
