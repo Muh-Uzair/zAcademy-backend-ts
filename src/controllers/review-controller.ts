@@ -15,7 +15,13 @@ export const getAllReviews = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const allReviews = await ReviewModel.find();
+    const allReviews = await ReviewModel.find()
+      .select("-id")
+      .populate({
+        path: "associatedUser",
+        select: "name role",
+      })
+      .populate({ path: "associatedCourse", select: "name" });
 
     if (!allReviews) {
       return next(new AppError("Unable to get reviews", 500));
@@ -53,13 +59,7 @@ export const createNewReview = async (
       return next(new AppError("User id not not provided", 500));
     }
 
-    // 3 : check if the user has submitted review already
-    const existingReview = await ReviewModel.findOne({
-      associatedCourse: courseId,
-      associatedUser: userId,
-    });
-
-    // 4 :
+    // 3 : get review rating out of the body
     const { review, rating } = req.body;
 
     if (!review || !rating) {
@@ -68,34 +68,25 @@ export const createNewReview = async (
       );
     }
 
-    // 5 : if the review is new create a new review
-    if (existingReview) {
-      existingReview.review = review;
-      existingReview.rating = rating;
-      existingReview.save();
+    // 4 : create a review
+    const newReview = await ReviewModel.create({
+      review,
+      rating,
+      createdAt: new Date(Date.now()),
+      associatedCourse: courseId,
+      associatedUser: userId,
+    });
 
-      res.status(200).json({
-        status: "success",
-        data: {
-          updatedReview: existingReview,
-        },
-      });
-    } else {
-      const newReview = await ReviewModel.create({
-        review,
-        rating,
-        createdAt: new Date(Date.now()),
-        associatedCourse: courseId,
-        associatedUser: userId,
-      });
-      res.status(200).json({
-        status: "success",
-        data: {
-          newReview,
-        },
-      });
-    }
+    // 5 : send a response
+    res.status(200).json({
+      status: "success",
+      data: {
+        newReview,
+      },
+    });
   } catch (err: unknown) {
     globalAsyncCatch(err, next);
   }
 };
+
+// FUNCTION

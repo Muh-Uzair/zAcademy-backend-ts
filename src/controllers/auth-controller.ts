@@ -131,7 +131,7 @@ export const signup = async (
   }
 };
 
-//  FUNCTION
+// FUNCTION
 export const login = async (
   req: Request,
   res: Response,
@@ -380,79 +380,6 @@ export const resetPassword = async (
     globalAsyncCatch(err, next);
   }
 };
-
-// FUNCTION logged in user updates password my written
-// export const updatePassword = async (
-//   req: Request,
-//   res: Response,
-//   next: NextFunction
-// ): Promise<void> => {
-//   try {
-//     // 1 : tke the jwt token from headers
-//     const receivedJwtToken: string | undefined | null =
-//       req.headers.authorization?.split(" ")[1];
-
-//     if (!receivedJwtToken) {
-//       return next(
-//         new AppError("Jwt token was not provided in request headers", 400)
-//       );
-//     }
-
-//     // 2 : check the validity of received token
-//     const jwtSecret: string | null | undefined = process.env.JWT_SECRET;
-
-//     if (!jwtSecret) {
-//       return next(new AppError("Unable to get jwt secret", 500));
-//     }
-
-//     // 3 : verify the received toke
-//     const decodedToken = jwt.verify(receivedJwtToken, jwtSecret);
-
-//     if (!decodedToken || typeof decodedToken !== "object") {
-//       return next(new AppError("Invalid jwt", 401));
-//     }
-
-//     // 4 : check wether the token has expired or not
-//     if (decodedToken.exp && decodedToken?.exp < Math.floor(Date.now() / 1000)) {
-//       return next(new AppError("The current token has been expired", 401));
-//     }
-
-//     // 5 : if token is not expired than set/update the password to received password
-//     if (!req.body.password || !req.body.confirmPassword) {
-//       return next(
-//         new AppError(
-//           "Provide password and confirmPassword both in request body",
-//           400
-//         )
-//       );
-//     }
-
-//     const user: UserInterface | null | undefined = await UserModel.findById(
-//       decodedToken?.id
-//     );
-
-//     if (!user) {
-//       return next(new AppError("No user for provided jwt", 401));
-//     }
-
-//     user.password = req.body.password;
-//     user.confirmPassword = req.body.confirmPassword;
-//     user.passwordChangedDate = new Date(Date.now() + 20000);
-//     await user.save();
-
-//     const jwtToken = signToken(user._id as string);
-
-//     res.status(200).json({
-//       status: "success",
-//       data: {
-//         jwtToken: receivedJwtToken,
-//         user,
-//       },
-//     });
-//   } catch (err: unknown) {
-//     globalAsyncCatch(err, next);
-//   }
-// };
 
 // FUNCTION update logged in user password jonas
 export const updatePassword = async (

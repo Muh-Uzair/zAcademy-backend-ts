@@ -43,19 +43,6 @@ export const getAllCourses = async (
   }
 };
 
-// // FUNCTION
-// export const checkIdExist = (
-//   req: Request,
-//   res: Response,
-//   next: NextFunction
-// ): void => {
-//   if (req.body?.id) {
-//     next(new AppError("id should not be sent when creating course", 400));
-//   } else {
-//     next();
-//   }
-// };
-
 // FUNCTION
 export const createCourse = async (
   req: CustomRequest,
@@ -114,44 +101,28 @@ export const createCourse = async (
   }
 };
 
-// FUNCTION
-export const checkIdValid = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-  val: string
-): Promise<void> => {
-  if (!/^[1-9]$/.test(val)) {
-    next(new AppError(`${val} is invalid course id`, 400));
-  } else {
-    const allCoursesLength: number = await CourseModel.countDocuments();
-    req.body.allCoursesLength = allCoursesLength;
-
-    if (Number(val) > allCoursesLength) {
-      next(new AppError(`${val} is invalid course id`, 400));
-    } else {
-      next();
-    }
-  }
-};
-
 export const getCourseById = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const course = await CourseModel.find({
-      $or: [
-        { id: { $eq: req.params.id } },
-        { id: { $eq: Number(req.params.id) } },
-      ],
-    });
+    const courseId = req.params.id;
+
+    if (!courseId) {
+      return next(new AppError("Course id not provided", 400));
+    }
+
+    const course = await CourseModel.findOne({ _id: courseId });
+
+    if (!course) {
+      return next(new AppError("Course not found", 404));
+    }
 
     res.status(200).json({
       status: "success",
       data: {
-        course: course[0],
+        course,
       },
     });
   } catch (error: unknown) {

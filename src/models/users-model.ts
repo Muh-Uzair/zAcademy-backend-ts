@@ -26,6 +26,7 @@ interface UserInterface extends Document {
   passwordResetToken?: string | undefined;
   passwordResetExpires?: Date | undefined;
   associatedCourses?: mongoose.Types.ObjectId[];
+  associatedReviews?: mongoose.Types.ObjectId[];
   location: InterfaceLocation;
   qualification?: string;
 }
@@ -126,7 +127,13 @@ const userSchema = new Schema<
     passwordResetExpires: {
       type: Date,
     },
-    associatedCourses: [{ type: Schema.Types.ObjectId, ref: "Course" }],
+    associatedCourses: {
+      type: [{ type: Schema.Types.ObjectId, ref: "Course" }],
+      default: [],
+    },
+    associatedReviews: {
+      type: [],
+    },
     location: {
       type: {
         type: String,

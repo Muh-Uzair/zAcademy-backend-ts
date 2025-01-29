@@ -2,7 +2,6 @@ import express, { Router } from "express";
 import {
   getAllCourses,
   createCourse,
-  checkIdValid,
   getCourseById,
   updateCourseById,
   deleteCourseById,
@@ -17,8 +16,6 @@ import {
 import { protect, restrictTo } from "../controllers/auth-controller";
 
 const router: Router = express.Router();
-
-router.param("id", checkIdValid);
 
 router
   .route("/")
