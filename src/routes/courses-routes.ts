@@ -14,8 +14,11 @@ import {
   buyCourse,
 } from "../controllers/courses-controller";
 import { protect, restrictTo } from "../controllers/auth-controller";
+import reviewRouter from "./review-routes";
 
 const router: Router = express.Router();
+
+router.use("/:courseId/review", reviewRouter);
 
 router
   .route("/")

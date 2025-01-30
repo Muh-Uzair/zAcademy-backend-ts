@@ -26,7 +26,7 @@ const reviewSchema = new Schema<ReviewInterface>(
     rating: {
       type: Number,
       required: [true, "Rating is required"],
-      min: [0, "Rating should not be less than 0"],
+      min: [1, "Rating should not be less than 1"],
       max: [5, "Rating should not increase 10"],
       validate: {
         validator: (val: Number) => isNumber(val),

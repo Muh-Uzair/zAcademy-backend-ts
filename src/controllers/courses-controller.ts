@@ -101,6 +101,7 @@ export const createCourse = async (
   }
 };
 
+// FUNCTION
 export const getCourseById = async (
   req: Request,
   res: Response,
