@@ -28,20 +28,6 @@ const signToken = (id: string): string | null => {
   });
 
   const encodedToken = jwt.decode(token);
-  console.log(
-    `secret-type ${typeof process.env.JWT_SECRET} secret-length ${
-      process.env.JWT_SECRET.length
-    }`
-  );
-  console.log(process.env.JWT_SECRET);
-  console.log(`token-type ${typeof token} token-length ${token.length}`);
-  console.log(token);
-
-  console.log(encodedToken);
-
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    console.log(decoded);
-  });
 
   return token;
 };

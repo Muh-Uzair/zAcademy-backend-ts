@@ -159,12 +159,12 @@ export const getAllReviewsForCourse = async (
       return next(new AppError("Course id not provided", 400));
     }
 
-    const review = await ReviewModel.findOne({ associatedCourse: courseId });
+    const allReviews = await ReviewModel.find({ associatedCourse: courseId });
 
     res.status(200).json({
       status: "success",
       data: {
-        review,
+        allReviews,
       },
     });
   } catch (err: unknown) {

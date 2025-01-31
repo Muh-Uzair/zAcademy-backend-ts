@@ -16,7 +16,7 @@ const router: Router = express.Router({ mergeParams: true });
 
 router
   .route("/")
-  .get(opBeforeGetReviews, getAllReviewsForCourse)
+  .get(protect, opBeforeGetReviews, getAllReviewsForCourse)
   .post(protect, restrictTo(["admin", "student"]), createNewReview)
   .patch(
     protect,
