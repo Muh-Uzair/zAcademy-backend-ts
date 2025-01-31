@@ -4,7 +4,7 @@ import { apiFeatures } from "../utils/api-features";
 import { AppError } from "../utils/app-error";
 import { globalAsyncCatch } from "../utils/global-async-catch";
 import { UserInterface, UserModel } from "../models/users-model";
-import { deleteOneDocument } from "./handlerFactory";
+import { deleteOneDocument, updateOneDocument } from "./handlerFactory";
 import { Document } from "mongoose";
 
 interface CustomRequest extends Request {
@@ -134,6 +134,42 @@ export const getCourseById = async (
 };
 
 // FUNCTION
+export const checkCorrectUserOperation = (
+  req: CustomRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  // 1 :  take the user out
+  const userPerformingOp = req.user;
+
+  // 2 : take the associated courses out of the user
+  const associatedCourses = userPerformingOp?.associatedCourses || [];
+
+  // 3 : check that the course on which the operation is performing exists in the current user associated courses arr
+  let correctUser = false;
+  const courseId = req.params?.id;
+
+  if (!courseId) {
+    return next(new AppError("Provide course id", 400));
+  }
+
+  associatedCourses.forEach((val) => {
+    if (String(val._id) === String(courseId)) {
+      correctUser = true;
+    }
+  });
+
+  // 4 : send response accordingly
+  if (!correctUser) {
+    return next(
+      new AppError("You are not allowed to perform this operation", 401)
+    );
+  } else {
+    next();
+  }
+};
+
+// FUNCTION
 export const checkDiscountValid = async (
   req: Request,
   res: Response,
@@ -146,11 +182,9 @@ export const checkDiscountValid = async (
       price: number;
     }
     // fetch the course price
-    const course: Course | null = await CourseModel.findOne({
-      id: Number(req.params.id),
-    })
-      .select("price")
-      .lean();
+    const course: Course | null = await CourseModel.findById(
+      req.params.id
+    ).select("price");
 
     const coursePrice = course?.price || 0;
 
@@ -169,54 +203,7 @@ export const checkDiscountValid = async (
 };
 
 // FUNCTION
-export const updateCourseById = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-    const updatedCourse = await CourseModel.findOneAndUpdate(
-      { id: Number(req.params.id) },
-      req.body,
-      { new: true, runValidators: true }
-    );
-
-    res.status(200).json({
-      status: "success",
-      data: {
-        updatedCourse,
-      },
-    });
-  } catch (error: unknown) {
-    globalAsyncCatch(error, next);
-  }
-};
-
-export const checkCorrectUserOperation = (
-  req: CustomRequest,
-  res: Response,
-  next: NextFunction
-) => {
-  // check the user which is performing the delete operation, is that who is the owner of the course
-  const userPerformingOp = req.user;
-  const associatedCourses = userPerformingOp?.associatedCourses || [];
-
-  let correctUser = false;
-
-  associatedCourses.forEach((val) => {
-    if (String(val._id) === String(req.params.id)) {
-      correctUser = true;
-    }
-  });
-
-  if (!correctUser) {
-    return next(
-      new AppError("You are not allowed to perform this operation", 401)
-    );
-  } else {
-    next();
-  }
-};
+export const updateCourseById = updateOneDocument<CourseInterface>(CourseModel);
 
 // FUNCTION
 export const deleteCourseById = deleteOneDocument<CourseInterface>(CourseModel);

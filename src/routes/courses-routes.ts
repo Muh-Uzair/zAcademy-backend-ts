@@ -37,7 +37,13 @@ router
 router
   .route("/:id")
   .get(getCourseById)
-  .patch(checkDiscountValid, updateCourseById)
+  .patch(
+    protect,
+    restrictTo(["admin", "teacher"]),
+    checkCorrectUserOperation,
+    checkDiscountValid,
+    updateCourseById
+  )
   .delete(
     protect,
     restrictTo(["admin", "teacher"]),

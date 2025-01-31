@@ -175,12 +175,6 @@ const courseSchema = new Schema<CourseInterface>(
           validator: (value: number) => isNumber(value),
           message: "Discount must be a number",
         },
-        {
-          validator: function (value: number) {
-            return value <= this.price;
-          },
-          message: "Discount should not be grater than actual price",
-        },
       ],
     },
     students: [{ type: Schema.Types.ObjectId, ref: "Users" }],
