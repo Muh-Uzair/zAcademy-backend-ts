@@ -1,7 +1,8 @@
 import express, { Router } from "express";
 import {
   getAllUsers,
-  updateLoggedUserData,
+  opBeforeUpdatingUserData,
+  updateUserData,
 } from "../controllers/users-controller";
 import {
   login,
@@ -15,12 +16,20 @@ import {
 
 const router: Router = express.Router();
 
-router.route("/").get(protect, restrictTo(["admin", "teacher"]), getAllUsers);
+router
+  .route("/")
+  .get(protect, restrictTo(["admin", "teacher", "student"]), getAllUsers)
+  .patch(
+    protect,
+    restrictTo(["admin", "teacher", "student"]),
+    opBeforeUpdatingUserData,
+    updateUserData
+  );
 router.route("/signup").post(signup);
 router.route("/login").post(login);
 router.route("/forgot-password").post(forgotPassword);
 router.route("/reset-password/:resetToken").post(resetPassword);
 router.route("/update-password").patch(protect, updatePassword);
-router.route("/update-logged-user-data").patch(protect, updateLoggedUserData);
+router.route("/");
 
 export default router;

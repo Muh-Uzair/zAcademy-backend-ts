@@ -3,6 +3,7 @@ import { UserInterface, UserModel } from "../models/users-model";
 import { globalAsyncCatch } from "../utils/global-async-catch";
 import { AppError } from "../utils/app-error";
 import { errorMonitor } from "events";
+import { updateOneDocument } from "./handlerFactory";
 
 interface CustomRequest extends Request {
   user?: UserInterface;
@@ -34,6 +35,7 @@ interface InterfaceUpdateObject {
   phoneNumber?: string;
 }
 
+// FUNCTION
 const correctBodyForUpdate = (
   reqBody: { [key: string]: string },
   keepFieldsArr: string[]
@@ -50,7 +52,7 @@ const correctBodyForUpdate = (
 };
 
 // FUNCTION update the currently logged in user
-export const updateLoggedUserData = async (
+export const opBeforeUpdatingUserData = async (
   req: CustomRequest,
   res: Response,
   next: NextFunction
@@ -74,18 +76,14 @@ export const updateLoggedUserData = async (
       return next(new AppError("User id does not exist in user object", 500));
     }
 
-    const user = await UserModel.findByIdAndUpdate(req.user?.id, correctedObj, {
-      returnDocument: "after",
-      runValidators: true,
-    });
+    req.params.id = req.user?.id;
+    req.body = correctedObj;
 
-    res.status(200).json({
-      status: "success",
-      data: {
-        user,
-      },
-    });
+    next();
   } catch (err) {
     globalAsyncCatch(err, next);
   }
 };
+
+// FUNCTION
+export const updateUserData = updateOneDocument<UserInterface>(UserModel);
