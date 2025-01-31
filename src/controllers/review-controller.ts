@@ -4,7 +4,11 @@ import { NextFunction, Request, Response } from "express";
 import { ReviewInterface, ReviewModel } from "../models/review-model";
 import { AppError } from "../utils/app-error";
 import { UserInterface, UserModel } from "../models/users-model";
-import { deleteOneDocument, updateOneDocument } from "./handlerFactory";
+import {
+  deleteOneDocument,
+  getOneDoc,
+  updateOneDocument,
+} from "./handlerFactory";
 import { CourseInterface } from "../models/courses-model";
 import { globalAsyncCatch } from "../utils/global-async-catch";
 
@@ -226,3 +230,37 @@ export const deleteReviewById = deleteOneDocument<ReviewInterface>(ReviewModel);
 
 // FUNCTION
 export const updateReviewById = updateOneDocument<ReviewInterface>(ReviewModel);
+
+// FUNCTION-GROUP
+export const opBeforeGettingOneReview = async (
+  req: CustomRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { reviewId } = req.params;
+
+    if (!reviewId) {
+      return next(new AppError("Provide review id", 400));
+    }
+
+    const review = await ReviewModel.findById(reviewId);
+
+    if (!review) {
+      return next(new AppError("No review for provided id", 400));
+    }
+
+    if (String(review.associatedUser) === String(req.user?.id)) {
+      req.params.id = reviewId;
+      next();
+    } else {
+      return next(
+        new AppError("You are not authorized to perform this action", 401)
+      );
+    }
+  } catch (err: unknown) {
+    globalAsyncCatch(err, next);
+  }
+};
+
+export const getReviewById = getOneDoc<ReviewInterface>(ReviewModel);

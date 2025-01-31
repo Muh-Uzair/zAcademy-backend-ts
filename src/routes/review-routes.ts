@@ -5,6 +5,8 @@ import {
   deleteReviewById,
   getAllReviews,
   getAllReviewsForCourse,
+  getReviewById,
+  opBeforeGettingOneReview,
   updateReviewById,
 } from "../controllers/review-controller";
 import { protect, restrictTo } from "../controllers/auth-controller";
@@ -25,6 +27,12 @@ router
 
 router
   .route("/:reviewId")
+  .get(
+    protect,
+    restrictTo(["admin", "student"]),
+    opBeforeGettingOneReview,
+    getReviewById
+  )
   .delete(
     protect,
     restrictTo(["admin", "student"]),

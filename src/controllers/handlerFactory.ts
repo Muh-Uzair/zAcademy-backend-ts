@@ -62,3 +62,31 @@ export const updateOneDocument =
       globalAsyncCatch(err, next);
     }
   };
+
+// FUNCTION
+export const getOneDoc =
+  <T extends Document>(Model: Model<T>) =>
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id } = req.params;
+
+      if (!id) {
+        return next(new AppError("Document id is not provided", 400));
+      }
+
+      const doc = await Model.findById(id);
+
+      if (!doc) {
+        return next(new AppError("No document found with provided id", 400));
+      }
+
+      res.status(200).json({
+        status: "success",
+        data: {
+          doc,
+        },
+      });
+    } catch (err: unknown) {
+      globalAsyncCatch(err, next);
+    }
+  };

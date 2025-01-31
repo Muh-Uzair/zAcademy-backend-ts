@@ -1,6 +1,8 @@
 import express, { Router } from "express";
 import {
   getAllUsers,
+  getUserDataOnId,
+  opBeforeGettingUser,
   opBeforeUpdatingUserData,
   updateUserData,
 } from "../controllers/users-controller";
@@ -30,6 +32,14 @@ router.route("/login").post(login);
 router.route("/forgot-password").post(forgotPassword);
 router.route("/reset-password/:resetToken").post(resetPassword);
 router.route("/update-password").patch(protect, updatePassword);
-router.route("/");
+
+router
+  .route("/:id")
+  .get(
+    protect,
+    restrictTo(["admin", "teacher", "student"]),
+    opBeforeGettingUser,
+    getUserDataOnId
+  );
 
 export default router;

@@ -3,7 +3,7 @@ import { UserInterface, UserModel } from "../models/users-model";
 import { globalAsyncCatch } from "../utils/global-async-catch";
 import { AppError } from "../utils/app-error";
 import { errorMonitor } from "events";
-import { updateOneDocument } from "./handlerFactory";
+import { getOneDoc, updateOneDocument } from "./handlerFactory";
 
 interface CustomRequest extends Request {
   user?: UserInterface;
@@ -51,7 +51,7 @@ const correctBodyForUpdate = (
   return newObj;
 };
 
-// FUNCTION update the currently logged in user
+// FUNCTION-GROUP update the currently logged in user
 export const opBeforeUpdatingUserData = async (
   req: CustomRequest,
   res: Response,
@@ -85,5 +85,39 @@ export const opBeforeUpdatingUserData = async (
   }
 };
 
-// FUNCTION
 export const updateUserData = updateOneDocument<UserInterface>(UserModel);
+
+// FUNCTION-GROUP
+export const opBeforeGettingUser = async (
+  req: CustomRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    // 1 : take user id from params
+    const userIdParams = req.params.id;
+
+    if (!userIdParams) {
+      return next(new AppError("Provide user id", 400));
+    }
+
+    // 2 : take user id out of req.user
+    const userIqReq = req.user?.id;
+
+    if (!userIqReq) {
+      return next(new AppError("Provide user id", 401));
+    }
+
+    if (userIdParams === userIqReq) {
+      next();
+    } else {
+      return next(
+        new AppError("You are not authorized to perform this action", 401)
+      );
+    }
+  } catch (err: unknown) {
+    globalAsyncCatch(err, next);
+  }
+};
+
+export const getUserDataOnId = getOneDoc<UserInterface>(UserModel);

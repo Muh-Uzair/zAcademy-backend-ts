@@ -4,7 +4,11 @@ import { apiFeatures } from "../utils/api-features";
 import { AppError } from "../utils/app-error";
 import { globalAsyncCatch } from "../utils/global-async-catch";
 import { UserInterface, UserModel } from "../models/users-model";
-import { deleteOneDocument, updateOneDocument } from "./handlerFactory";
+import {
+  deleteOneDocument,
+  getOneDoc,
+  updateOneDocument,
+} from "./handlerFactory";
 import { Document } from "mongoose";
 
 interface CustomRequest extends Request {
@@ -104,34 +108,7 @@ export const createCourse = async (
 };
 
 // FUNCTION
-export const getCourseById = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-    const courseId = req.params.id;
-
-    if (!courseId) {
-      return next(new AppError("Course id not provided", 400));
-    }
-
-    const course = await CourseModel.findOne({ _id: courseId });
-
-    if (!course) {
-      return next(new AppError("Course not found", 404));
-    }
-
-    res.status(200).json({
-      status: "success",
-      data: {
-        course,
-      },
-    });
-  } catch (error: unknown) {
-    globalAsyncCatch(error, next);
-  }
-};
+export const getCourseById = getOneDoc<CourseInterface>(CourseModel);
 
 // FUNCTION
 export const checkCorrectUserOperation = (
