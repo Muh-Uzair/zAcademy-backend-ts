@@ -4,6 +4,8 @@ import { apiFeatures } from "../utils/api-features";
 import { AppError } from "../utils/app-error";
 import { globalAsyncCatch } from "../utils/global-async-catch";
 import { UserInterface, UserModel } from "../models/users-model";
+import { deleteOneDocument } from "./handlerFactory";
+import { Document } from "mongoose";
 
 interface CustomRequest extends Request {
   user?: UserInterface;
@@ -190,24 +192,34 @@ export const updateCourseById = async (
   }
 };
 
-// FUNCTION
-export const deleteCourseById = async (
-  req: Request,
+export const checkCorrectUserOperation = (
+  req: CustomRequest,
   res: Response,
   next: NextFunction
-): Promise<void> => {
-  try {
-    await CourseModel.deleteOne({ id: Number(req.params.id) });
+) => {
+  // check the user which is performing the delete operation, is that who is the owner of the course
+  const userPerformingOp = req.user;
+  const associatedCourses = userPerformingOp?.associatedCourses || [];
 
-    res.status(204).json({
-      status: "success",
-      message: `deleted course with id ${req.params.id}`,
-      data: null,
-    });
-  } catch (error: unknown) {
-    globalAsyncCatch(error, next);
+  let correctUser = false;
+
+  associatedCourses.forEach((val) => {
+    if (String(val._id) === String(req.params.id)) {
+      correctUser = true;
+    }
+  });
+
+  if (!correctUser) {
+    return next(
+      new AppError("You are not allowed to perform this operation", 401)
+    );
+  } else {
+    next();
   }
 };
+
+// FUNCTION
+export const deleteCourseById = deleteOneDocument<CourseInterface>(CourseModel);
 
 // FUNCTION
 export const getCoursesStats = async (

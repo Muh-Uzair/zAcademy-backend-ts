@@ -1,8 +1,9 @@
 import mongoose, { Schema } from "mongoose";
 import { isAlpha, isNumber } from "../utils/validation-functions";
 import { model } from "mongoose";
+import { Document } from "mongoose";
 
-interface ReviewInterface {
+interface ReviewInterface extends Document {
   review: string;
   rating: Number;
   createdAt?: Date;

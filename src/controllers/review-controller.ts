@@ -1,9 +1,12 @@
+import mongoose from "mongoose";
 import { NextFunction, Request, Response } from "express";
-import { globalAsyncCatch } from "../utils/global-async-catch";
+
 import { ReviewInterface, ReviewModel } from "../models/review-model";
 import { AppError } from "../utils/app-error";
 import { UserInterface, UserModel } from "../models/users-model";
-import mongoose from "mongoose";
+import { deleteOneDocument } from "./handlerFactory";
+import { CourseInterface } from "../models/courses-model";
+import { globalAsyncCatch } from "../utils/global-async-catch";
 
 interface CustomRequest extends Request {
   user?: UserInterface;
@@ -16,79 +19,32 @@ export const getAllReviews = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const allReviews = await ReviewModel.find()
-      .select("-id")
-      .populate({
-        path: "associatedUser",
-        select: "name role",
-      })
-      .populate({ path: "associatedCourse", select: "name" });
+    if (req.params.courseId) {
+      next();
+    } else {
+      const allReviews = await ReviewModel.find()
+        .select("-id")
+        .populate({
+          path: "associatedUser",
+          select: "name role",
+        })
+        .populate({ path: "associatedCourse", select: "name" });
 
-    if (!allReviews) {
-      return next(new AppError("Unable to get reviews", 500));
+      if (!allReviews) {
+        return next(new AppError("Unable to get reviews", 500));
+      }
+
+      res.status(200).json({
+        status: "success",
+        data: {
+          allReviews,
+        },
+      });
     }
-
-    res.status(200).json({
-      status: "success",
-      data: {
-        allReviews,
-      },
-    });
   } catch (err: unknown) {
     globalAsyncCatch(err, next);
   }
 };
-
-// // FUNCTION
-// export const createNewReview = async (
-//   req: CustomRequest,
-//   res: Response,
-//   next: NextFunction
-// ): Promise<void> => {
-//   try {
-//     // 1 : get the course id
-//     const { courseId } = req.query;
-
-//     if (!courseId) {
-//       return next(new AppError("Course id not provided in query", 400));
-//     }
-
-//     // 2 : get the user if out
-//     const userId = req.user?.id;
-
-//     if (!userId) {
-//       return next(new AppError("User id not not provided", 500));
-//     }
-
-//     // 3 : get review rating out of the body
-//     const { review, rating } = req.body;
-
-//     if (!review || !rating) {
-//       return next(
-//         new AppError("Provide review and rating in request body", 400)
-//       );
-//     }
-
-//     // 4 : create a review
-//     const newReview = await ReviewModel.create({
-//       review,
-//       rating,
-//       createdAt: new Date(Date.now()),
-//       associatedCourse: courseId,
-//       associatedUser: userId,
-//     });
-
-//     // 5 : send a response
-//     res.status(200).json({
-//       status: "success",
-//       data: {
-//         newReview,
-//       },
-//     });
-//   } catch (err: unknown) {
-//     globalAsyncCatch(err, next);
-//   }
-// };
 
 // FUNCTION
 export const createNewReview = async (
@@ -102,8 +58,6 @@ export const createNewReview = async (
       req.params.courseId
     );
 
-    console.log(courseId);
-
     if (!courseId) {
       return next(new AppError("Invalid course id", 400));
     }
@@ -113,6 +67,16 @@ export const createNewReview = async (
 
     if (!userId) {
       return next(new AppError("Invalid user id", 400));
+    }
+
+    // 3 : check wether the user have already submit a review on this course
+    const alreadyReviewed = await ReviewModel.find({
+      associatedCourse: courseId,
+      associatedUser: userId,
+    });
+
+    if (alreadyReviewed.length > 0) {
+      return next(new AppError("You have already reviewed this course", 400));
     }
 
     // 3 : check wether the user have bought this course or not
@@ -184,3 +148,94 @@ export const createNewReview = async (
     globalAsyncCatch(err, next);
   }
 };
+
+// FUNCTION
+export const getAllReviewsForCourse = async (
+  req: CustomRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    // 1 : get the course id from params
+    const courseId = new mongoose.Types.ObjectId(req.params.courseId);
+
+    if (!courseId) {
+      return next(new AppError("Course id not provided", 400));
+    }
+
+    const review = await ReviewModel.findOne({ associatedCourse: courseId });
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        review,
+      },
+    });
+  } catch (err: unknown) {
+    globalAsyncCatch(err, next);
+  }
+};
+
+// FUNCTION
+export const checkCorrectUserOperation = async (
+  req: CustomRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    // 1 : take the course Id out
+    const courseId: mongoose.Types.ObjectId = new mongoose.Types.ObjectId(
+      req.params.courseId
+    );
+
+    if (!courseId) {
+      return next(new AppError("Course id not provided", 400));
+    }
+
+    // 2 : take the user id out of req.user
+    const userId: mongoose.Types.ObjectId = new mongoose.Types.ObjectId(
+      req.user?.id
+    );
+
+    if (!userId) {
+      return next(new AppError("User id not provided", 400));
+    }
+
+    // 3 : take the review Id out of params
+    const reviewId: mongoose.Types.ObjectId = new mongoose.Types.ObjectId(
+      req.params.reviewId
+    );
+
+    if (!reviewId) {
+      return next(new AppError("Review id not provided", 400));
+    }
+
+    const review = await ReviewModel.findById(reviewId);
+
+    if (!review) {
+      return next(new AppError("No review found with that id", 404));
+    }
+
+    console.log(
+      String(review.associatedUser) === String(userId) &&
+        String(review.associatedCourse) === String(courseId)
+    );
+
+    if (
+      String(review.associatedUser) === String(userId) &&
+      String(review.associatedCourse) === String(courseId)
+    ) {
+      req.params.id = String(reviewId);
+      next();
+    } else {
+      return next(
+        new AppError("You are not authorized to delete this review", 403)
+      );
+    }
+  } catch (err: unknown) {
+    globalAsyncCatch(err, next);
+  }
+};
+
+// FUNCTION
+export const deleteReviewById = deleteOneDocument<ReviewInterface>(ReviewModel);

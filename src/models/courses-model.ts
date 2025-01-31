@@ -7,7 +7,7 @@ interface InterfaceLocation {
   location: Number[];
 }
 
-interface InterfaceInstructor {
+interface InterfaceInstructor extends Document {
   name: string;
   email: string;
   qualification?: string;

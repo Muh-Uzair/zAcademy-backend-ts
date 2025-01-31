@@ -12,13 +12,14 @@ import {
   getBestCourse,
   checkDiscountValid,
   buyCourse,
+  checkCorrectUserOperation,
 } from "../controllers/courses-controller";
 import { protect, restrictTo } from "../controllers/auth-controller";
 import reviewRouter from "./review-routes";
 
 const router: Router = express.Router();
 
-router.use("/:courseId/review", reviewRouter);
+router.use("/:courseId/reviews", reviewRouter);
 
 router
   .route("/")
@@ -37,6 +38,11 @@ router
   .route("/:id")
   .get(getCourseById)
   .patch(checkDiscountValid, updateCourseById)
-  .delete(protect, restrictTo(["admin", "teacher"]), deleteCourseById);
+  .delete(
+    protect,
+    restrictTo(["admin", "teacher"]),
+    checkCorrectUserOperation,
+    deleteCourseById
+  );
 
 export default router;
