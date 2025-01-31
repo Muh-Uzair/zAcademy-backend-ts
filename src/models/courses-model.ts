@@ -69,7 +69,6 @@ const courseSchema = new Schema<CourseInterface>(
         type: String,
         required: [true, "Email is required"],
         trim: true,
-        unique: true,
         validate: {
           validator: (val: string) => isEmail(val),
           message: (props) => `${props.value} is not a valid email address!`,
@@ -113,8 +112,8 @@ const courseSchema = new Schema<CourseInterface>(
       required: [true, "A course must have a short summary"],
       minlength: [20, "A course summary should not be less than 20 characters"],
       maxLength: [
-        50,
-        "A course summary should not exceed than 100 50 characters",
+        200,
+        "A course summary should not exceed than 200 characters",
       ],
       validate: {
         validator: (value: string) => isAlpha(value),
@@ -203,7 +202,6 @@ courseSchema.pre("save", async function (next): Promise<void> {
     throw new Error("Discount price should not be greater than actual price");
   }
 
-  console.log(this);
   next();
 });
 

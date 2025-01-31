@@ -3,7 +3,7 @@ import {
   checkCorrectUserOperation,
   createNewReview,
   deleteReviewById,
-  getAllReviews,
+  opBeforeGetReviews,
   getAllReviewsForCourse,
   getReviewById,
   opBeforeGettingOneReview,
@@ -16,7 +16,7 @@ const router: Router = express.Router({ mergeParams: true });
 
 router
   .route("/")
-  .get(getAllReviews, getAllReviewsForCourse)
+  .get(opBeforeGetReviews, getAllReviewsForCourse)
   .post(protect, restrictTo(["admin", "student"]), createNewReview)
   .patch(
     protect,

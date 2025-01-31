@@ -6,6 +6,7 @@ import { AppError } from "../utils/app-error";
 import { UserInterface, UserModel } from "../models/users-model";
 import {
   deleteOneDocument,
+  getAllDocs,
   getOneDoc,
   updateOneDocument,
 } from "./handlerFactory";
@@ -16,8 +17,16 @@ interface CustomRequest extends Request {
   user?: UserInterface;
 }
 
-// FUNCTION
-export const getAllReviews = async (
+// FUNCTION-GROUP
+export const getAllReviews = getAllDocs<ReviewInterface>(ReviewModel, [
+  { path: "associatedCourse", select: "name" },
+  {
+    path: "associatedUser",
+    select: "name role",
+  },
+]);
+
+export const opBeforeGetReviews = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -26,24 +35,7 @@ export const getAllReviews = async (
     if (req.params.courseId) {
       next();
     } else {
-      const allReviews = await ReviewModel.find()
-        .select("-id")
-        .populate({
-          path: "associatedUser",
-          select: "name role",
-        })
-        .populate({ path: "associatedCourse", select: "name" });
-
-      if (!allReviews) {
-        return next(new AppError("Unable to get reviews", 500));
-      }
-
-      res.status(200).json({
-        status: "success",
-        data: {
-          allReviews,
-        },
-      });
+      await getAllReviews(req, res, next);
     }
   } catch (err: unknown) {
     globalAsyncCatch(err, next);

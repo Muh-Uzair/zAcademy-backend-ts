@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import mongoose, { Model, Document } from "mongoose";
 import { globalAsyncCatch } from "../utils/global-async-catch";
 import { AppError } from "../utils/app-error";
+import { apiFeatures } from "../utils/api-features";
 
 // FUNCTION
 export const deleteOneDocument =
@@ -88,5 +89,50 @@ export const getOneDoc =
       });
     } catch (err: unknown) {
       globalAsyncCatch(err, next);
+    }
+  };
+
+// FUNCTION
+interface InterfacePopulateObj {
+  path: string;
+  select?: string;
+}
+
+export const getAllDocs =
+  <T extends Document>(
+    Model: Model<T>,
+    populateObjsArr: InterfacePopulateObj[] = []
+  ) =>
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      //
+      const apiFeaturesObj = new apiFeatures(Model.find(), req.query)
+        .sorting()
+        .projection()
+        .limiting();
+
+      await apiFeaturesObj.pagination(Model);
+
+      let query = apiFeaturesObj.query;
+
+      populateObjsArr.forEach((val: InterfacePopulateObj) => {
+        query = query.populate(val);
+      });
+
+      const allDocs = await query;
+
+      if (!allDocs) {
+        next(new AppError("No documents found", 404));
+      }
+
+      res.status(200).json({
+        status: "success",
+        results: allDocs.length,
+        data: {
+          allDocs,
+        },
+      });
+    } catch (error: unknown) {
+      globalAsyncCatch(error, next);
     }
   };

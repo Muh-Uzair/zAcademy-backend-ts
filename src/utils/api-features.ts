@@ -1,4 +1,4 @@
-import { Query } from "mongoose";
+import mongoose, { Query } from "mongoose";
 import { CourseInterface, CourseModel } from "../models/courses-model";
 
 interface CustomQuery {
@@ -16,7 +16,7 @@ class apiFeatures {
 
   constructor(
     query: Query<CourseInterface[], CourseInterface>,
-    queryString: CustomQuery,
+    queryString: CustomQuery
   ) {
     this.query = query;
     this.queryString = queryString;
@@ -31,7 +31,7 @@ class apiFeatures {
           : [];
       this.query = this.query.sort(sortingOptionsArr.join(" "));
     } else {
-      this.query = this.query.sort("id");
+      this.query = this.query.sort("createdAt");
     }
 
     return this;
@@ -41,7 +41,7 @@ class apiFeatures {
   projection() {
     if (this.queryString.fields) {
       this.query = this.query.select(
-        this.queryString.fields.toString().split(",").join(" "),
+        this.queryString.fields.toString().split(",").join(" ")
       );
     } else {
       this.query = this.query.select("-__v -updatedAt");
@@ -55,24 +55,28 @@ class apiFeatures {
     if (this.queryString.limit) {
       const limit: number = Number(this.queryString.limit);
       this.query = this.query.limit(limit);
+    } else {
+      this.query = this.query.limit(10);
     }
 
     return this;
   }
 
   // check total documents
-  async countDocuments(): Promise<number> {
-    return await CourseModel.countDocuments();
+  async countDocuments<T extends Document>(
+    Model: typeof mongoose.Model
+  ): Promise<number> {
+    return await Model.countDocuments();
   }
 
   // pagination
-  async pagination() {
+  async pagination<T extends Document>(Model: typeof mongoose.Model) {
     if (this.queryString.page) {
       const page: number = Number(this.queryString.page);
-      const limit: number = 4;
+      const limit: number = 10;
       const skip: number = (page - 1) * limit;
 
-      const totalCourses: number = await this.countDocuments();
+      const totalCourses: number = await this.countDocuments(Model);
       if (skip >= totalCourses) {
         throw new Error(`No data for page ${this.queryString.page}`);
       }

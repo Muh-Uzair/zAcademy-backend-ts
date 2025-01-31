@@ -3,30 +3,14 @@ import { UserInterface, UserModel } from "../models/users-model";
 import { globalAsyncCatch } from "../utils/global-async-catch";
 import { AppError } from "../utils/app-error";
 import { errorMonitor } from "events";
-import { getOneDoc, updateOneDocument } from "./handlerFactory";
+import { getAllDocs, getOneDoc, updateOneDocument } from "./handlerFactory";
 
 interface CustomRequest extends Request {
   user?: UserInterface;
 }
 
 // FUNCTION
-export const getAllUsers = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-    const allUsers = await UserModel.find();
-    res.status(200).json({
-      status: "success",
-      data: {
-        allUsers,
-      },
-    });
-  } catch (err: unknown) {
-    globalAsyncCatch(err, next);
-  }
-};
+export const getAllUsers = getAllDocs<UserInterface>(UserModel);
 
 interface InterfaceUpdateObject {
   photo?: string;

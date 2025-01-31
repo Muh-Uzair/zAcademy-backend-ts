@@ -1,5 +1,5 @@
 export const isAlpha = (value: string) => {
-  return /^[a-zA-Z\s]+$/.test(value);
+  return /^[a-zA-Z\s\.\-\,\/\']+$/.test(value);
 };
 
 export const isEmail = (value: string) => {

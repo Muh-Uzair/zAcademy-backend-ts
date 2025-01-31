@@ -23,7 +23,7 @@ router.use("/:courseId/reviews", reviewRouter);
 
 router
   .route("/")
-  .get(protect, getAllCourses)
+  .get(getAllCourses)
   .post(protect, restrictTo(["admin", "teacher"]), createCourse);
 router.route("/courses-stats").get(getCoursesStats);
 router.route("/top-5-courses").get(aliasTop5Courses, getAllCourses);

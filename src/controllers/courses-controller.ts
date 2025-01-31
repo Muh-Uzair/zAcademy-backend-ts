@@ -6,6 +6,7 @@ import { globalAsyncCatch } from "../utils/global-async-catch";
 import { UserInterface, UserModel } from "../models/users-model";
 import {
   deleteOneDocument,
+  getAllDocs,
   getOneDoc,
   updateOneDocument,
 } from "./handlerFactory";
@@ -16,38 +17,7 @@ interface CustomRequest extends Request {
 }
 
 // FUNCTION
-export const getAllCourses = async (
-  req: CustomRequest,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-    //
-    const apiFeaturesObj = new apiFeatures(CourseModel.find(), req.query)
-      .sorting()
-      .projection()
-      .limiting();
-
-    await apiFeaturesObj.pagination();
-
-    const courses: CourseInterface[] = await apiFeaturesObj.query;
-
-    if (courses.length === 0 && !courses) {
-      next(new AppError("No courses found", 404));
-    }
-
-    res.status(200).json({
-      status: "success",
-      results: courses.length,
-      user: req.user,
-      data: {
-        courses,
-      },
-    });
-  } catch (error: unknown) {
-    globalAsyncCatch(error, next);
-  }
-};
+export const getAllCourses = getAllDocs<CourseInterface>(CourseModel);
 
 // FUNCTION
 export const createCourse = async (
@@ -56,22 +26,18 @@ export const createCourse = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    // 1 : check for the user in request object
-    if (!req.user?.id) {
-      next(new AppError("No user in request oject", 500));
+    // 1 : check wether user exists or not
+    if (!req.user) {
+      return next(new AppError("Provide user", 401));
     }
-
-    // 2 : take the id out of the request body
-    const authUserId = req.user?.id;
 
     // 3 : take the user object from the DB
-    const instructor = await UserModel.findById(authUserId).select(
-      "name email qualification location associatedCourses"
-    );
-
-    if (!instructor) {
-      return next(new AppError("Error in finding user with provided id", 500));
-    }
+    const instructor = {
+      name: req.user?.name,
+      email: req.user?.email,
+      qualification: req.user?.qualification || null,
+      location: req.user?.location,
+    };
 
     // 4 : create the course
     const newCreatedCourse = await CourseModel.create({
@@ -85,14 +51,9 @@ export const createCourse = async (
 
     // 5 : associate the course
     const updatedInstructor = await UserModel.findByIdAndUpdate(
-      instructor?._id,
-      {
-        associatedCourses: [
-          ...(instructor?.associatedCourses || []),
-          newCreatedCourse?._id,
-        ],
-      },
-      { returnDocument: "after", runValidators: true }
+      req.user?.id,
+      { $push: { associatedCourses: newCreatedCourse._id } },
+      { new: true, runValidators: true }
     );
 
     res.status(201).json({
@@ -146,7 +107,7 @@ export const checkCorrectUserOperation = (
   }
 };
 
-// FUNCTION
+// FUNCTION-GROUP
 export const checkDiscountValid = async (
   req: Request,
   res: Response,
@@ -179,13 +140,12 @@ export const checkDiscountValid = async (
   // if there is no discount then move to next middleware
 };
 
-// FUNCTION
 export const updateCourseById = updateOneDocument<CourseInterface>(CourseModel);
 
 // FUNCTION
 export const deleteCourseById = deleteOneDocument<CourseInterface>(CourseModel);
 
-// FUNCTION
+// FUNCTION-GROUP
 export const getCoursesStats = async (
   req: Request,
   res: Response,
@@ -218,7 +178,6 @@ export const getCoursesStats = async (
   }
 };
 
-// FUNCTION
 export const getBestCourse = async (
   req: Request,
   res: Response,
@@ -255,7 +214,6 @@ export const getBestCourse = async (
   }
 };
 
-// FUNCTION
 export const aliasTop5Courses = (
   req: Request,
   res: Response,
@@ -269,7 +227,6 @@ export const aliasTop5Courses = (
   next();
 };
 
-// FUNCTION
 export const aliasTop5Cheapest = (
   req: Request,
   res: Response,
@@ -281,7 +238,6 @@ export const aliasTop5Cheapest = (
   next();
 };
 
-// FUNCTION
 export const aliasTop5Longest = (
   req: Request,
   res: Response,
@@ -293,12 +249,10 @@ export const aliasTop5Longest = (
   next();
 };
 
-// FUNCTION
 export const paymentConfirmed = (): boolean => {
   return true;
 };
 
-// FUNCTION
 export const buyCourse = async (
   req: CustomRequest,
   res: Response,

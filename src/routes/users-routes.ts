@@ -20,7 +20,7 @@ const router: Router = express.Router();
 
 router
   .route("/")
-  .get(protect, restrictTo(["admin", "teacher", "student"]), getAllUsers)
+  .get(protect, restrictTo(["admin"]), getAllUsers)
   .patch(
     protect,
     restrictTo(["admin", "teacher", "student"]),
