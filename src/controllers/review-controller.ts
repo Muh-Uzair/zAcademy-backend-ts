@@ -4,7 +4,7 @@ import { NextFunction, Request, Response } from "express";
 import { ReviewInterface, ReviewModel } from "../models/review-model";
 import { AppError } from "../utils/app-error";
 import { UserInterface, UserModel } from "../models/users-model";
-import { deleteOneDocument } from "./handlerFactory";
+import { deleteOneDocument, updateOneDocument } from "./handlerFactory";
 import { CourseInterface } from "../models/courses-model";
 import { globalAsyncCatch } from "../utils/global-async-catch";
 
@@ -201,31 +201,15 @@ export const checkCorrectUserOperation = async (
       return next(new AppError("User id not provided", 400));
     }
 
-    // 3 : take the review Id out of params
-    const reviewId: mongoose.Types.ObjectId = new mongoose.Types.ObjectId(
-      req.params.reviewId
-    );
+    const existingReview = await ReviewModel.findOne({
+      associatedUser: userId,
+      associatedCourse: courseId,
+    });
 
-    if (!reviewId) {
-      return next(new AppError("Review id not provided", 400));
-    }
+    console.log(existingReview);
 
-    const review = await ReviewModel.findById(reviewId);
-
-    if (!review) {
-      return next(new AppError("No review found with that id", 404));
-    }
-
-    console.log(
-      String(review.associatedUser) === String(userId) &&
-        String(review.associatedCourse) === String(courseId)
-    );
-
-    if (
-      String(review.associatedUser) === String(userId) &&
-      String(review.associatedCourse) === String(courseId)
-    ) {
-      req.params.id = String(reviewId);
+    if (existingReview) {
+      req.params.id = String(existingReview?._id);
       next();
     } else {
       return next(
@@ -239,3 +223,6 @@ export const checkCorrectUserOperation = async (
 
 // FUNCTION
 export const deleteReviewById = deleteOneDocument<ReviewInterface>(ReviewModel);
+
+// FUNCTION
+export const updateReviewById = updateOneDocument<ReviewInterface>(ReviewModel);
