@@ -13,6 +13,7 @@ import {
   checkDiscountValid,
   buyCourse,
   checkCorrectUserOperation,
+  syncOtherCollections,
 } from "../controllers/courses-controller";
 import { protect, restrictTo } from "../controllers/auth-controller";
 import reviewRouter from "./review-routes";
@@ -48,6 +49,7 @@ router
     protect,
     restrictTo(["admin", "teacher"]),
     checkCorrectUserOperation,
+    syncOtherCollections,
     deleteCourseById
   );
 

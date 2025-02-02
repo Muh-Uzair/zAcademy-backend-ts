@@ -196,12 +196,6 @@ userSchema.pre("save", async function (next): Promise<void> {
 });
 
 // FUNCTION
-userSchema.pre(/^find/, function (this: mongoose.Query<any, any>, next) {
-  this.populate({ path: "associatedCourses" });
-  next();
-});
-
-// FUNCTION
 // this is an instance method
 userSchema.method(
   "checkPasswordChangedAfter",

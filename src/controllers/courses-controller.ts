@@ -11,6 +11,7 @@ import {
   updateOneDocument,
 } from "./handlerFactory";
 import { Document } from "mongoose";
+import { ReviewModel } from "../models/review-model";
 
 interface CustomRequest extends Request {
   user?: UserInterface;
@@ -71,39 +72,49 @@ export const createCourse = async (
 // FUNCTION
 export const getCourseById = getOneDoc<CourseInterface>(CourseModel);
 
-// FUNCTION
-export const checkCorrectUserOperation = (
+// FUNCTION this check that the curr is the owner of course which is going to be deleted
+export const checkCorrectUserOperation = async (
   req: CustomRequest,
   res: Response,
   next: NextFunction
-) => {
-  // 1 :  take the user out
-  const userPerformingOp = req.user;
+): Promise<void> => {
+  try {
+    // 1 :  take user id
+    const userId = req.user?.id || req.user?._id;
 
-  // 2 : take the associated courses out of the user
-  const associatedCourses = userPerformingOp?.associatedCourses || [];
-
-  // 3 : check that the course on which the operation is performing exists in the current user associated courses arr
-  let correctUser = false;
-  const courseId = req.params?.id;
-
-  if (!courseId) {
-    return next(new AppError("Provide course id", 400));
-  }
-
-  associatedCourses.forEach((val) => {
-    if (String(val._id) === String(courseId)) {
-      correctUser = true;
-    }
-  });
-
-  // 4 : send response accordingly
-  if (!correctUser) {
-    return next(
-      new AppError("You are not allowed to perform this operation", 401)
+    // 2 : get the user out of db
+    const result = await UserModel.findById(userId).select(
+      "+associatedCourses"
     );
-  } else {
-    next();
+
+    if (!result) {
+      return next(new AppError("Curr user does not awn any courses", 401));
+    }
+
+    // 4 : check that the course on which the operation is performing exists in the current user associated courses arr
+    let correctUser = false;
+    const courseId = req.params?.id;
+
+    if (!courseId) {
+      return next(new AppError("Provide course id", 400));
+    }
+
+    result.associatedCourses?.forEach((val, i) => {
+      if (String(val._id) === String(courseId)) {
+        correctUser = true;
+      }
+    });
+
+    // 5 : send response accordingly
+    if (!correctUser) {
+      return next(
+        new AppError("You are not allowed to perform this operation", 401)
+      );
+    } else {
+      next();
+    }
+  } catch (err: unknown) {
+    globalAsyncCatch(err, next);
   }
 };
 
@@ -142,7 +153,127 @@ export const checkDiscountValid = async (
 
 export const updateCourseById = updateOneDocument<CourseInterface>(CourseModel);
 
-// FUNCTION
+// FUNCTION-GROUP
+export const syncOtherCollections = async (
+  req: CustomRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const courseId = req.params?.id;
+
+    // DIVIDER 1 : sync reviews associated with that course
+
+    const allReviews = await ReviewModel.find({ associatedCourse: courseId });
+
+    if (!allReviews) {
+      return next(
+        new AppError("Error in fetching reviews for provided course", 500)
+      );
+    }
+
+    const deletedReviews = await ReviewModel.deleteMany({
+      associatedCourse: courseId,
+    });
+
+    if (!deletedReviews) {
+      return next(new AppError("Error in deleting associated reviews", 500));
+    }
+
+    // DIVIDER 2 : sync associatedCourses arr on teacher who created the course
+    // --> take the user id out
+    const userId = req.user?.id || req.user?._id;
+
+    if (!userId) {
+      return next(new AppError("Provide user id ", 401));
+    }
+
+    // --> take the curr logged user out of db and also the owner of the course who is deleting
+    const user = await UserModel.findById(userId);
+
+    if (!user) {
+      return next(new AppError("No user found for provided id", 401));
+    }
+
+    if (!user?.associatedCourses) {
+      return next(
+        new AppError("Current user is not the owner of this course", 400)
+      );
+    }
+
+    user.associatedCourses = user?.associatedCourses.filter((val) => {
+      return String(val._id) !== String(courseId);
+    });
+
+    await user.save();
+
+    // DIVIDER 3 : sync the associatedCourses arr on student who bought this course
+    const userData = await CourseModel.findById(courseId).select("students");
+
+    if (!userData) {
+      return next(
+        new AppError("Error in fetching students of the course", 500)
+      );
+    }
+
+    const { students } = userData;
+
+    if (students?.length === 0) {
+      next();
+    }
+
+    students?.forEach(async (val): Promise<void> => {
+      const studentData = await UserModel.findById(val).select(
+        "associatedCourses associatedReviews"
+      );
+
+      if (!studentData) {
+        return next(new AppError("User does not exists for provided id", 400));
+      }
+
+      if (!studentData?.associatedCourses || !studentData?.associatedReviews) {
+        return next(
+          new AppError(
+            "Error in fetching associated courses and associated reviews",
+            500
+          )
+        );
+      }
+
+      if (studentData?.associatedCourses?.length === 0) {
+        return next(new AppError("Db is not sync correctly", 500));
+      }
+
+      studentData.associatedCourses = studentData?.associatedCourses?.filter(
+        ({ _id: id }) => {
+          console.log(
+            String(id),
+            String(courseId),
+            String(id) === String(courseId)
+          );
+          return String(id) !== String(courseId);
+        }
+      );
+
+      studentData.associatedReviews = studentData?.associatedReviews?.filter(
+        (val) => {
+          return !allReviews.some(
+            (review) => String(review._id) === String(val)
+          );
+        }
+      );
+
+      await studentData.save();
+
+      next();
+    });
+
+    // DIVIDER 4 : sync Associated Reviews
+  } catch (err) {
+    globalAsyncCatch(err, next);
+  }
+};
+
 export const deleteCourseById = deleteOneDocument<CourseInterface>(CourseModel);
 
 // FUNCTION-GROUP
