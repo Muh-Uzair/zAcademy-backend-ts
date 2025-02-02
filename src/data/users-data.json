@@ -1,0 +1,249 @@
+[
+  {
+    "_id": "6622f1b3e4b0a8a1f4c8b7e1",
+    "name": "ahmad",
+    "email": "ahmad1@gmail.com",
+    "phoneNumber": "03349087991",
+    "password": "Uzair10$$",
+    "confirmPassword": "Uzair10$$",
+    "role": "student",
+    "location": {
+      "coordinates": [40.712776, -74.005974]
+    },
+    "qualification": "Masters in Computer Science"
+  },
+  {
+    "_id": "6622f1b3e4b0a8a1f4c8b7e2",
+    "name": "sara",
+    "email": "sara2@gmail.com",
+    "phoneNumber": "03349087992",
+    "password": "Uzair10$$",
+    "confirmPassword": "Uzair10$$",
+    "role": "student",
+    "location": {
+      "coordinates": [34.052235, -118.243683]
+    },
+    "qualification": "Bachelors in Software Engineering"
+  },
+  {
+    "_id": "6622f1b3e4b0a8a1f4c8b7e3",
+    "name": "ali",
+    "email": "ali3@gmail.com",
+    "phoneNumber": "03349087993",
+    "password": "Uzair10$$",
+    "confirmPassword": "Uzair10$$",
+    "role": "student",
+    "location": {
+      "coordinates": [51.507351, -0.127758]
+    },
+    "qualification": "Masters in Data Science"
+  },
+  {
+    "_id": "6622f1b3e4b0a8a1f4c8b7e4",
+    "name": "fatima",
+    "email": "fatima4@gmail.com",
+    "phoneNumber": "03349087994",
+    "password": "Uzair10$$",
+    "confirmPassword": "Uzair10$$",
+    "role": "student",
+    "location": {
+      "coordinates": [35.689487, 139.691711]
+    },
+    "qualification": "Bachelors in Computer Science"
+  },
+  {
+    "_id": "6622f1b3e4b0a8a1f4c8b7e5",
+    "name": "usman",
+    "email": "usman5@gmail.com",
+    "phoneNumber": "03349087995",
+    "password": "Uzair10$$",
+    "confirmPassword": "Uzair10$$",
+    "role": "student",
+    "location": {
+      "coordinates": [55.755825, 37.617298]
+    },
+    "qualification": "Bachelors in IT"
+  },
+  {
+    "_id": "6622f1b3e4b0a8a1f4c8b7e6",
+    "name": "samina",
+    "email": "samina6@gmail.com",
+    "phoneNumber": "03349087996",
+    "password": "Uzair10$$",
+    "confirmPassword": "Uzair10$$",
+    "role": "student",
+    "location": {
+      "coordinates": [37.774929, -122.419418]
+    },
+    "qualification": "Masters in Cybersecurity"
+  },
+  {
+    "_id": "6622f1b3e4b0a8a1f4c8b7e7",
+    "name": "zain",
+    "email": "zain7@gmail.com",
+    "phoneNumber": "03349087997",
+    "password": "Uzair10$$",
+    "confirmPassword": "Uzair10$$",
+    "role": "student",
+    "location": {
+      "coordinates": [28.613939, 77.209023]
+    },
+    "qualification": "Bachelors in Computer Engineering"
+  },
+  {
+    "_id": "6622f1b3e4b0a8a1f4c8b7e8",
+    "name": "maria",
+    "email": "maria8@gmail.com",
+    "phoneNumber": "03349087998",
+    "password": "Uzair10$$",
+    "confirmPassword": "Uzair10$$",
+    "role": "teacher",
+    "location": {
+      "coordinates": [19.07609, 72.877426]
+    },
+    "qualification": "PhD in Artificial Intelligence"
+  },
+  {
+    "_id": "6622f1b3e4b0a8a1f4c8b7e9",
+    "name": "farhan",
+    "email": "farhan9@gmail.com",
+    "phoneNumber": "03349087999",
+    "password": "Uzair10$$",
+    "confirmPassword": "Uzair10$$",
+    "role": "teacher",
+    "location": {
+      "coordinates": [39.904202, 116.407394]
+    },
+    "qualification": "PhD in Data Science"
+  },
+  {
+    "_id": "6622f1b3e4b0a8a1f4c8b7a1",
+    "name": "bilal",
+    "email": "bilal10@gmail.com",
+    "phoneNumber": "03349088000",
+    "password": "Uzair10$$",
+    "confirmPassword": "Uzair10$$",
+    "role": "student",
+    "location": {
+      "coordinates": [41.902782, 12.496366]
+    },
+    "qualification": "Bachelors in Computer Science"
+  },
+  {
+    "_id": "6622f1b3e4b0a8a1f4c8b7a2",
+    "name": "sadia",
+    "email": "sadia11@gmail.com",
+    "phoneNumber": "03349088001",
+    "password": "Uzair10$$",
+    "confirmPassword": "Uzair10$$",
+    "role": "student",
+    "location": {
+      "coordinates": [52.520008, 13.404954]
+    },
+    "qualification": "Masters in Software Engineering"
+  },
+  {
+    "_id": "6622f1b3e4b0a8a1f4c8b7a3",
+    "name": "hassan",
+    "email": "hassan12@gmail.com",
+    "phoneNumber": "03349088002",
+    "password": "Uzair10$$",
+    "confirmPassword": "Uzair10$$",
+    "role": "student",
+    "location": {
+      "coordinates": [31.230391, 121.473701]
+    },
+    "qualification": "Bachelors in IT"
+  },
+  {
+    "_id": "6622f1b3e4b0a8a1f4c8b7a4",
+    "name": "ayesha",
+    "email": "ayesha13@gmail.com",
+    "phoneNumber": "03349088003",
+    "password": "Uzair10$$",
+    "confirmPassword": "Uzair10$$",
+    "role": "student",
+    "location": {
+      "coordinates": [23.810331, 90.412521]
+    },
+    "qualification": "Masters in Cybersecurity"
+  },
+  {
+    "_id": "6622f1b3e4b0a8a1f4c8b7a5",
+    "name": "tariq",
+    "email": "tariq14@gmail.com",
+    "phoneNumber": "03349088004",
+    "password": "Uzair10$$",
+    "confirmPassword": "Uzair10$$",
+    "role": "student",
+    "location": {
+      "coordinates": [37.566536, 126.977966]
+    },
+    "qualification": "Bachelors in Computer Engineering"
+  },
+  {
+    "_id": "6622f1b3e4b0a8a1f4c8b7a6",
+    "name": "kiran",
+    "email": "kiran15@gmail.com",
+    "phoneNumber": "03349088005",
+    "password": "Uzair10$$",
+    "confirmPassword": "Uzair10$$",
+    "role": "teacher",
+    "location": {
+      "coordinates": [33.684422, 73.047882]
+    },
+    "qualification": "PhD in Artificial Intelligence"
+  },
+  {
+    "_id": "6622f1b3e4b0a8a1f4c8b7a7",
+    "name": "jamal",
+    "email": "jamal16@gmail.com",
+    "phoneNumber": "03349088006",
+    "password": "Uzair10$$",
+    "confirmPassword": "Uzair10$$",
+    "role": "teacher",
+    "location": {
+      "coordinates": [25.276987, 55.296249]
+    },
+    "qualification": "PhD in Data Science"
+  },
+  {
+    "_id": "6622f1b3e4b0a8a1f4c8b7a8",
+    "name": "saad",
+    "email": "saad17@gmail.com",
+    "phoneNumber": "03349088007",
+    "password": "Uzair10$$",
+    "confirmPassword": "Uzair10$$",
+    "role": "student",
+    "location": {
+      "coordinates": [13.756331, 100.501762]
+    },
+    "qualification": "Bachelors in Information Technology"
+  },
+  {
+    "_id": "6622f1b3e4b0a8a1f4c8b7a9",
+    "name": "zoya",
+    "email": "zoya18@gmail.com",
+    "phoneNumber": "03349088008",
+    "password": "Uzair10$$",
+    "confirmPassword": "Uzair10$$",
+    "role": "student",
+    "location": {
+      "coordinates": [6.524379, 3.379206]
+    },
+    "qualification": "Masters in Computer Science"
+  },
+  {
+    "_id": "6622f1b3e4b0a8a1f4c8b7b1",
+    "name": "ahsan",
+    "email": "ahsan19@gmail.com",
+    "phoneNumber": "03349088009",
+    "password": "Uzair10$$",
+    "confirmPassword": "Uzair10$$",
+    "role": "student",
+    "location": {
+      "coordinates": [6.524379, 3.379206]
+    },
+    "qualification": "Bachelors in Computer Science"
+  }
+]

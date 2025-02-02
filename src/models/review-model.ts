@@ -1,7 +1,8 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Model, Schema } from "mongoose";
 import { isAlpha, isNumber } from "../utils/validation-functions";
 import { model } from "mongoose";
 import { Document } from "mongoose";
+import { CourseModel } from "./courses-model";
 
 interface ReviewInterface extends Document {
   review: string;
@@ -50,6 +51,37 @@ const reviewSchema = new Schema<ReviewInterface>(
     strict: true,
   }
 );
+
+reviewSchema.post("save", async function (): Promise<void> {
+  console.log("__________________________________this");
+  console.log(this);
+  // 1 : model
+  const ReviewModel = this.constructor as Model<ReviewInterface>;
+
+  const stats = await ReviewModel.aggregate([
+    {
+      $match: { associatedCourse: this?.associatedCourse },
+    },
+    {
+      $group: {
+        _id: "$associatedCourse",
+        ratingsQuantity: { $sum: 1 },
+        averageRating: { $avg: "$rating" },
+      },
+    },
+  ]);
+
+  const calculatedAvgRat = stats[0].averageRating;
+  const calculatedRatingsQuantity = stats[0].ratingsQuantity;
+
+  await CourseModel.findByIdAndUpdate(this?.associatedCourse, {
+    averageRating: calculatedAvgRat,
+    ratingsQuantity: calculatedRatingsQuantity,
+  });
+
+  console.log("_______________________________stats");
+  console.log(stats);
+});
 
 const ReviewModel = model<ReviewInterface>("Review", reviewSchema);
 

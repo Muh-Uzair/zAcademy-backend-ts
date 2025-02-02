@@ -86,8 +86,6 @@ export const signup = async (
       return next(new AppError("Provide role to signup", 400));
     }
 
-    console.log(role === "teacher");
-
     // 3 : check if role is teacher or student
     if (role !== "teacher" && role !== "student") {
       return next(new AppError("Role can only be teacher or student", 400));

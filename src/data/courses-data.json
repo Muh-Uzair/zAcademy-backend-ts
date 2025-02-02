@@ -1,0 +1,112 @@
+[
+  {
+    "coverImage": "https://example.com/python-cover.jpg",
+    "name": "Python for Beginners",
+    "summary": "Learn Python from scratch and start coding today.",
+    "difficulty": "beginner",
+    "duration": 40,
+    "averageRating": 4.7,
+    "ratingsQuantity": 200,
+    "price": 79.99,
+    "discount": 20
+  },
+  {
+    "coverImage": "https://example.com/data-science.jpg",
+    "name": "Data Science Bootcamp",
+    "summary": "Master data science, machine learning, and AI.",
+    "difficulty": "intermediate",
+    "duration": 60,
+    "averageRating": 4.6,
+    "ratingsQuantity": 180,
+    "price": 129.99,
+    "discount": 30
+  },
+  {
+    "coverImage": "https://example.com/web-dev.jpg",
+    "name": "Full-Stack Web Development",
+    "summary": "Build modern web applications using HTML, CSS, JavaScript, and React.",
+    "difficulty": "intermediate",
+    "duration": 50,
+    "averageRating": 4.8,
+    "ratingsQuantity": 250,
+    "price": 99.99,
+    "discount": 15
+  },
+  {
+    "coverImage": "https://example.com/cyber-security.jpg",
+    "name": "Cyber Security Essentials",
+    "summary": "Learn how to protect systems from cyber threats.",
+    "difficulty": "advance",
+    "duration": 45,
+    "averageRating": 4.5,
+    "ratingsQuantity": 120,
+    "price": 109.99,
+    "discount": 10
+  },
+  {
+    "coverImage": "https://example.com/sql.jpg",
+    "name": "SQL & Database Management",
+    "summary": "Master SQL queries and database management techniques.",
+    "difficulty": "beginner",
+    "duration": 30,
+    "averageRating": 4.3,
+    "ratingsQuantity": 100,
+    "price": 69.99,
+    "discount": 25
+  },
+  {
+    "coverImage": "https://example.com/devops.jpg",
+    "name": "DevOps with AWS & Kubernetes",
+    "summary": "Learn DevOps principles and cloud automation.",
+    "difficulty": "advance",
+    "duration": 55,
+    "averageRating": 4.6,
+    "ratingsQuantity": 140,
+    "price": 119.99,
+    "discount": 20
+  },
+  {
+    "coverImage": "https://example.com/ui-ux.jpg",
+    "name": "UI/UX Design Fundamentals",
+    "summary": "Design stunning user interfaces and enhance user experience.",
+    "difficulty": "beginner",
+    "duration": 35,
+    "averageRating": 4.7,
+    "ratingsQuantity": 160,
+    "price": 89.99,
+    "discount": 15
+  },
+  {
+    "coverImage": "https://example.com/blockchain.jpg",
+    "name": "Blockchain & Cryptocurrency",
+    "summary": "Understand blockchain technology and its applications.",
+    "difficulty": "intermediate",
+    "duration": 40,
+    "averageRating": 4.5,
+    "ratingsQuantity": 110,
+    "price": 99.99,
+    "discount": 20
+  },
+  {
+    "coverImage": "https://example.com/java.jpg",
+    "name": "Java Programming Masterclass",
+    "summary": "Learn Java from basics to advanced concepts.",
+    "difficulty": "intermediate",
+    "duration": 45,
+    "averageRating": 4.6,
+    "ratingsQuantity": 180,
+    "price": 89.99,
+    "discount": 18
+  },
+  {
+    "coverImage": "https://example.com/ai-ml.jpg",
+    "name": "Artificial Intelligence & Machine Learning",
+    "summary": "Explore AI & ML techniques with real-world applications.",
+    "difficulty": "advance",
+    "duration": 70,
+    "averageRating": 4.8,
+    "ratingsQuantity": 220,
+    "price": 149.99,
+    "discount": 25
+  }
+]

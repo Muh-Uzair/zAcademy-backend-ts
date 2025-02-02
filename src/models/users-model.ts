@@ -132,7 +132,8 @@ const userSchema = new Schema<
       default: [],
     },
     associatedReviews: {
-      type: [],
+      type: [{ type: Schema.Types.ObjectId, ref: "Review" }],
+      default: [],
     },
     location: {
       type: {
@@ -156,7 +157,7 @@ const userSchema = new Schema<
     qualification: {
       type: String,
       trim: true,
-      minlength: [10, "Qualification must be at least 10 characters long"],
+      minlength: [3, "Qualification must be at least 10 characters long"],
       maxlength: [100, "Qualification must be less than 100 characters long"],
       validate: {
         validator: (val: string) => isAlpha(val),
@@ -179,7 +180,7 @@ const userSchema = new Schema<
   }
 );
 
-// FUNCTION pre-save MW
+// FUNCTION pre-save doc MW
 userSchema.pre("save", async function (next): Promise<void> {
   // if user have modified the password than encrypt it again
   if (!this.isModified("password")) {
@@ -233,8 +234,6 @@ userSchema.method("createPasswordResetToken", function (): string {
 userSchema.method(
   "comparePassword",
   async function (incomingPassword): Promise<boolean> {
-    console.log(incomingPassword);
-    console.log(this.password);
     return await bcrypt.compare(incomingPassword, this.password);
   }
 );

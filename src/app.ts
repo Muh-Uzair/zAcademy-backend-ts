@@ -38,15 +38,15 @@ const limiter = rateLimit({
 
 app.use(limiter);
 
-app.use((req: Request, res: Response, next: NextFunction) => {
-  if (checkInvalidProperties(req.body)) {
-    return next(
-      new AppError("Invalid properties [_id, id, createdAt, updatedAt]", 400)
-    );
-  }
+// app.use((req: Request, res: Response, next: NextFunction) => {
+//   if (checkInvalidProperties(req.body)) {
+//     return next(
+//       new AppError("Invalid properties [_id, id, createdAt, updatedAt]", 400)
+//     );
+//   }
 
-  next();
-});
+//   next();
+// });
 app.use("/api/courses", coursesRouter);
 app.use("/api/users", userRouter);
 app.use("/api/reviews", reviewRouter);

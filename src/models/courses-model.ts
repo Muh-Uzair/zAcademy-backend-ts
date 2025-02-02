@@ -187,6 +187,9 @@ const courseSchema = new Schema<CourseInterface>(
   }
 );
 
+// setting indexes for performance
+courseSchema.index({ price: 1, duration: 1 });
+
 // virtual properties
 courseSchema.virtual("durationMins").get(function (): number {
   return Number(this.duration) * 60; // return the duration in minutes
