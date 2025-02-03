@@ -3,6 +3,8 @@ import { isAlpha, isNumber } from "../utils/validation-functions";
 import { model } from "mongoose";
 import { Document } from "mongoose";
 import { CourseModel } from "./courses-model";
+import { AppError } from "../utils/app-error";
+import { globalAsyncCatch } from "../utils/global-async-catch";
 
 interface ReviewInterface extends Document {
   review: string;
@@ -52,15 +54,13 @@ const reviewSchema = new Schema<ReviewInterface>(
   }
 );
 
-reviewSchema.post("save", async function (): Promise<void> {
-  console.log("__________________________________this");
-  console.log(this);
-  // 1 : model
+// FUNCTION-GROUP
+async function calculateStats(this: Document & ReviewInterface): Promise<void> {
   const ReviewModel = this.constructor as Model<ReviewInterface>;
 
   const stats = await ReviewModel.aggregate([
     {
-      $match: { associatedCourse: this?.associatedCourse },
+      $match: { associatedCourse: this.associatedCourse },
     },
     {
       $group: {
@@ -71,16 +71,48 @@ reviewSchema.post("save", async function (): Promise<void> {
     },
   ]);
 
-  const calculatedAvgRat = stats[0].averageRating;
-  const calculatedRatingsQuantity = stats[0].ratingsQuantity;
+  if (stats.length > 0) {
+    await CourseModel.findByIdAndUpdate(this.associatedCourse, {
+      averageRating: stats[0].averageRating,
+      ratingsQuantity: stats[0].ratingsQuantity,
+    });
+  } else {
+    await CourseModel.findByIdAndUpdate(this.associatedCourse, {
+      averageRating: this.rating,
+      ratingsQuantity: 1,
+    });
+  }
+}
 
-  await CourseModel.findByIdAndUpdate(this?.associatedCourse, {
-    averageRating: calculatedAvgRat,
-    ratingsQuantity: calculatedRatingsQuantity,
-  });
+reviewSchema.post("save", async function (): Promise<void> {
+  await calculateStats.call(this);
+});
 
-  console.log("_______________________________stats");
-  console.log(stats);
+reviewSchema.post("findOneAndUpdate", async function () {
+  const updatedDocument = await this.model.findById(
+    (this as any).docGettingUpdated?._id
+  );
+
+  await calculateStats.call(updatedDocument);
+});
+
+reviewSchema.pre("findOneAndUpdate", async function (next) {
+  // Get the filter criteria used in the update operation
+  const queryFilter = this.getQuery();
+
+  // Find the document before the update
+  const docGettingUpdated = await this.model.findOne(queryFilter);
+
+  if (!docGettingUpdated) {
+    return next(
+      new AppError("Error in getting document that is getting updated", 500)
+    );
+  }
+
+  // Store the document on the query object using type assertion
+  (this as any).docGettingUpdated = docGettingUpdated;
+
+  next();
 });
 
 const ReviewModel = model<ReviewInterface>("Review", reviewSchema);

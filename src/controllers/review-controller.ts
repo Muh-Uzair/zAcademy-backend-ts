@@ -209,7 +209,7 @@ export const checkCorrectUserOperation = async (
       next();
     } else {
       return next(
-        new AppError("You are not authorized to delete this review", 403)
+        new AppError("You are not authorized to perform this action", 403)
       );
     }
   } catch (err: unknown) {
@@ -220,7 +220,45 @@ export const checkCorrectUserOperation = async (
 // FUNCTION
 export const deleteReviewById = deleteOneDocument<ReviewInterface>(ReviewModel);
 
-// FUNCTION
+// FUNCTION-GROUP
+export const checkUserSubmittedReview = async (
+  req: CustomRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    // 1 : take course id out of params
+    const courseId = req.params?.courseId;
+
+    if (!courseId) {
+      return next(new AppError("Provide course id", 400));
+    }
+
+    // 2 : take user if out of user on req obj
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return next(new AppError("You are not logged in", 401));
+    }
+
+    // 3 : no check that the user have already submitted a review on this course or not
+    const existingReview = await ReviewModel.findOne({
+      associatedCourse: String(courseId),
+      associatedUser: String(userId),
+    });
+
+    if (!existingReview) {
+      return next(
+        new AppError("You do not have any review on this course", 400)
+      );
+    }
+
+    next();
+  } catch (err: unknown) {
+    globalAsyncCatch(err, next);
+  }
+};
+
 export const updateReviewById = updateOneDocument<ReviewInterface>(ReviewModel);
 
 // FUNCTION-GROUP

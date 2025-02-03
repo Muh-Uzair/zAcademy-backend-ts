@@ -8,10 +8,12 @@ import {
   getReviewById,
   opBeforeGettingOneReview,
   updateReviewById,
+  checkUserSubmittedReview,
 } from "../controllers/review-controller";
 import { protect, restrictTo } from "../controllers/auth-controller";
 import { globalAsyncCatch } from "../utils/global-async-catch";
 
+// router.use("/:courseId/reviews", reviewRouter);
 const router: Router = express.Router({ mergeParams: true });
 
 router
@@ -22,6 +24,7 @@ router
     protect,
     restrictTo(["admin", "student"]),
     checkCorrectUserOperation,
+    checkUserSubmittedReview,
     updateReviewById
   );
 

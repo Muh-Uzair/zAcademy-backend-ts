@@ -45,7 +45,7 @@ export const updateOneDocument =
       }
 
       // 2 : update the document of provided id
-      const updatedDoc = await Model.findByIdAndUpdate(id, req.body, {
+      const updatedDoc = await Model.findOneAndUpdate({ _id: id }, req.body, {
         new: true,
         runValidators: true,
       });
