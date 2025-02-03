@@ -15,13 +15,7 @@ export const deleteOneDocument =
         return next(new AppError("Document id not provided", 400));
       }
 
-      const doc = await Model.findByIdAndDelete(docId);
-
-      if (!doc) {
-        return next(
-          new AppError(`No document found with that id ${docId} `, 404)
-        );
-      }
+      const doc = await Model.findOneAndDelete({ _id: String(docId) });
 
       res.status(204).json({
         status: "success",

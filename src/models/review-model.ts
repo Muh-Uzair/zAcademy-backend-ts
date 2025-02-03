@@ -78,8 +78,8 @@ async function calculateStats(this: Document & ReviewInterface): Promise<void> {
     });
   } else {
     await CourseModel.findByIdAndUpdate(this.associatedCourse, {
-      averageRating: this.rating,
-      ratingsQuantity: 1,
+      averageRating: 0,
+      ratingsQuantity: 0,
     });
   }
 }
@@ -113,6 +113,10 @@ reviewSchema.pre("findOneAndUpdate", async function (next) {
   (this as any).docGettingUpdated = docGettingUpdated;
 
   next();
+});
+
+reviewSchema.post("findOneAndDelete", async function (deletedDoc) {
+  await calculateStats.call(deletedDoc);
 });
 
 const ReviewModel = model<ReviewInterface>("Review", reviewSchema);
