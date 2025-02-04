@@ -335,6 +335,61 @@ export const findCoursesWithinDistance = async (
   }
 };
 
+// FUNCTION
+export const getInstitutesLocation = async (
+  req: CustomRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    // 1 : take the center data out of the query
+    const center: string | undefined = req.query?.center as string | undefined;
+
+    if (!center) {
+      return next(new AppError("No center provided", 400));
+    }
+
+    // 2 : take lng lat out of thr center
+    const [lat, lng] = center.split(",").map((val) => val.trim());
+
+    if (!lat || !lng) {
+      return next(
+        new AppError("Coordinates are not provided in correct format", 400)
+      );
+    }
+
+    // 3 : execute query find distance off all the institutes from user location
+    const allDistance = await CourseModel.aggregate([
+      {
+        $geoNear: {
+          near: {
+            type: "Point",
+            coordinates: [Number(lng), Number(lat)],
+          },
+          distanceField: "distance",
+          distanceMultiplier: 0.001,
+        },
+      },
+      {
+        $addFields: {
+          distance: { $round: ["$distance", 0] },
+        },
+      },
+      {
+        $project: { distance: 1, name: 1 },
+      },
+    ]);
+
+    res.status(200).json({
+      status: "success",
+      results: allDistance?.length,
+      allDistance,
+    });
+  } catch (err: unknown) {
+    globalAsyncCatch(err, next);
+  }
+};
+
 // FUNCTION-GROUP
 export const getCoursesStats = async (
   req: Request,
