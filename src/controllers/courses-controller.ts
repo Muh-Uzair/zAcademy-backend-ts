@@ -276,6 +276,65 @@ export const syncOtherCollections = async (
 
 export const deleteCourseById = deleteOneDocument<CourseInterface>(CourseModel);
 
+// FUNCTION
+export const findCoursesWithinDistance = async (
+  req: CustomRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    console.log(req.query);
+
+    // 1 : take the distance out of query
+    const distance: string | undefined = req.query?.distance as
+      | string
+      | undefined;
+
+    if (!distance) {
+      return next(new AppError("No distance provided", 400));
+    }
+
+    // 2 : take the center data out of the query
+    const center: string | undefined = req.query?.center as string | undefined;
+
+    if (!center) {
+      return next(new AppError("No center provided", 400));
+    }
+
+    // 3 : take lng lat out of thr center
+    const [lat, lng] = center.split(",").map((val) => val.trim());
+    if (!lat || !lng) {
+      return next(
+        new AppError("Coordinates are not provided in correct format", 400)
+      );
+    }
+
+    // 4 : enforcing index
+    await CourseModel.collection.createIndex({ instituteLocation: "2dsphere" });
+
+    // 5 : find courses with in the radius provided as distance
+    const docsInRadius = await CourseModel.find({
+      instituteLocation: {
+        $near: {
+          $geometry: {
+            type: "Point",
+            coordinates: [Number(lng), Number(lat)], // your location
+          },
+          $maxDistance: Number(distance) * 1000, // 5km in meters
+        },
+      },
+    });
+
+    res.status(200).json({
+      status: "success",
+      results: docsInRadius?.length,
+      docsInRadius,
+    });
+  } catch (err: unknown) {
+    globalAsyncCatch(err, next);
+  }
+};
+
 // FUNCTION-GROUP
 export const getCoursesStats = async (
   req: Request,

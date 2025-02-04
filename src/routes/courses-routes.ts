@@ -14,6 +14,7 @@ import {
   buyCourse,
   checkCorrectUserOperation,
   syncOtherCollections,
+  findCoursesWithinDistance,
 } from "../controllers/courses-controller";
 import { protect, restrictTo } from "../controllers/auth-controller";
 import reviewRouter from "./review-routes";
@@ -34,6 +35,7 @@ router.route("/best-course").get(getBestCourse);
 router
   .route("/buy-course")
   .patch(protect, restrictTo(["admin", "student"]), buyCourse);
+router.route("/within").get(findCoursesWithinDistance);
 
 router
   .route("/:id")

@@ -8,7 +8,11 @@
     "averageRating": 4.7,
     "ratingsQuantity": 200,
     "price": 79.99,
-    "discount": 20
+    "discount": 20,
+    "instituteLocation": {
+      "type": "Point",
+      "coordinates": [74.3587, 31.5204]
+    }
   },
   {
     "coverImage": "https://example.com/data-science.jpg",
@@ -19,7 +23,11 @@
     "averageRating": 4.6,
     "ratingsQuantity": 180,
     "price": 129.99,
-    "discount": 30
+    "discount": 30,
+    "instituteLocation": {
+      "type": "Point",
+      "coordinates": [74.3271, 31.5084]
+    }
   },
   {
     "coverImage": "https://example.com/web-dev.jpg",
@@ -30,7 +38,11 @@
     "averageRating": 4.8,
     "ratingsQuantity": 250,
     "price": 99.99,
-    "discount": 15
+    "discount": 15,
+    "instituteLocation": {
+      "type": "Point",
+      "coordinates": [67.0822, 24.9056]
+    }
   },
   {
     "coverImage": "https://example.com/cyber-security.jpg",
@@ -41,29 +53,41 @@
     "averageRating": 4.5,
     "ratingsQuantity": 120,
     "price": 109.99,
-    "discount": 10
+    "discount": 10,
+    "instituteLocation": {
+      "type": "Point",
+      "coordinates": [67.0311, 24.8607]
+    }
   },
   {
     "coverImage": "https://example.com/sql.jpg",
-    "name": "SQL & Database Management",
+    "name": "SQL and Database Management",
     "summary": "Master SQL queries and database management techniques.",
     "difficulty": "beginner",
     "duration": 30,
     "averageRating": 4.3,
     "ratingsQuantity": 100,
     "price": 69.99,
-    "discount": 25
+    "discount": 25,
+    "instituteLocation": {
+      "type": "Point",
+      "coordinates": [73.0479, 33.6844]
+    }
   },
   {
     "coverImage": "https://example.com/devops.jpg",
-    "name": "DevOps with AWS & Kubernetes",
+    "name": "DevOps with AWS and Kubernetes",
     "summary": "Learn DevOps principles and cloud automation.",
     "difficulty": "advance",
     "duration": 55,
     "averageRating": 4.6,
     "ratingsQuantity": 140,
     "price": 119.99,
-    "discount": 20
+    "discount": 20,
+    "instituteLocation": {
+      "type": "Point",
+      "coordinates": [73.1562, 33.7294]
+    }
   },
   {
     "coverImage": "https://example.com/ui-ux.jpg",
@@ -74,18 +98,26 @@
     "averageRating": 4.7,
     "ratingsQuantity": 160,
     "price": 89.99,
-    "discount": 15
+    "discount": 15,
+    "instituteLocation": {
+      "type": "Point",
+      "coordinates": [71.5249, 34.0151]
+    }
   },
   {
     "coverImage": "https://example.com/blockchain.jpg",
-    "name": "Blockchain & Cryptocurrency",
+    "name": "Blockchain and Cryptocurrency",
     "summary": "Understand blockchain technology and its applications.",
     "difficulty": "intermediate",
     "duration": 40,
     "averageRating": 4.5,
     "ratingsQuantity": 110,
     "price": 99.99,
-    "discount": 20
+    "discount": 20,
+    "instituteLocation": {
+      "type": "Point",
+      "coordinates": [71.4704, 33.9987]
+    }
   },
   {
     "coverImage": "https://example.com/java.jpg",
@@ -96,17 +128,25 @@
     "averageRating": 4.6,
     "ratingsQuantity": 180,
     "price": 89.99,
-    "discount": 18
+    "discount": 18,
+    "instituteLocation": {
+      "type": "Point",
+      "coordinates": [73.0479, 33.6007]
+    }
   },
   {
     "coverImage": "https://example.com/ai-ml.jpg",
-    "name": "Artificial Intelligence & Machine Learning",
-    "summary": "Explore AI & ML techniques with real-world applications.",
+    "name": "Artificial Intelligence and Machine Learning",
+    "summary": "Explore AI and ML techniques with real-world applications.",
     "difficulty": "advance",
     "duration": 70,
     "averageRating": 4.8,
     "ratingsQuantity": 220,
     "price": 149.99,
-    "discount": 25
+    "discount": 25,
+    "instituteLocation": {
+      "type": "Point",
+      "coordinates": [73.0815, 33.6518]
+    }
   }
 ]

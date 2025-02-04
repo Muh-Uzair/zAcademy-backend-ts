@@ -27,6 +27,7 @@ interface CourseInterface extends Document {
   price: number;
   discount?: number;
   students?: mongoose.Types.ObjectId[];
+  instituteLocation: InterfaceLocation;
 }
 
 // Define the schema for the Course model
@@ -177,6 +178,25 @@ const courseSchema = new Schema<CourseInterface>(
       ],
     },
     students: [{ type: Schema.Types.ObjectId, ref: "Users" }],
+    instituteLocation: {
+      type: {
+        type: String,
+        default: "Point",
+        enum: ["Point"],
+        required: [true, "For geo spatial data type is required"],
+      },
+      coordinates: {
+        type: [Number],
+        required: [true, "Institute location must be provided"],
+        validate: {
+          validator: function (value: number[]) {
+            return value && value.length === 2;
+          },
+          message:
+            "Coordinates must be an array of two numbers [longitude, latitude]",
+        },
+      },
+    },
   },
   {
     toObject: { virtuals: true },
@@ -189,6 +209,7 @@ const courseSchema = new Schema<CourseInterface>(
 
 // setting indexes for performance
 courseSchema.index({ price: 1, duration: 1 });
+courseSchema.index({ instituteLocation: "2dsphere" });
 
 // virtual properties
 courseSchema.virtual("durationMins").get(function (): number {
