@@ -167,16 +167,18 @@ export const protect = async (
 ): Promise<void> => {
   // 1 : check if there is authorization in headers
   if (
-    !req.headers.authorization ||
-    !req.headers.authorization.startsWith("Bearer")
+    (!req.headers.authorization ||
+      !req.headers.authorization.startsWith("Bearer")) &&
+    !req.cookies.jwt
   ) {
-    return next(
-      new AppError("No request headers or invalid authorization format", 400)
-    );
+    return next(new AppError("Jwt is invalid or missing", 400));
   }
 
   // --> take the token out the headers
-  const receivedToken = req.headers.authorization.split(" ")[1];
+  const receivedToken =
+    (req.headers?.authorization
+      ? req.headers.authorization.split(" ")[1]
+      : null) || req.cookies?.jwt;
 
   try {
     if (!receivedToken || !process.env.JWT_SECRET) {
@@ -425,4 +427,16 @@ export const updatePassword = async (
   } catch (err: unknown) {
     globalAsyncCatch(err, next);
   }
+};
+
+// FUNCTION
+export const logout = (req: Request, res: Response, next: NextFunction) => {
+  res.cookie("jwt", "user-logged-out", {
+    expires: new Date(Date.now() + 10000),
+    httpOnly: true,
+  });
+
+  res.status(200).json({
+    status: "success",
+  });
 };

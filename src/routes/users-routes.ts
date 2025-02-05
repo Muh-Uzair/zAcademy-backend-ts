@@ -14,6 +14,7 @@ import {
   updatePassword,
   protect,
   restrictTo,
+  logout,
 } from "../controllers/auth-controller";
 
 const router: Router = express.Router();
@@ -27,6 +28,7 @@ router.route("/login").post(login);
 router.route("/forgot-password").post(forgotPassword);
 router.route("/reset-password/:resetToken").post(protect, resetPassword);
 router.route("/update-password").patch(protect, updatePassword);
+router.route("/logout").get(logout);
 
 router
   .route("/:id")

@@ -4,14 +4,15 @@ import dotenv from "dotenv";
 import helmet from "helmet";
 import mongoSanitize from "express-mongo-sanitize";
 import hpp from "hpp";
+
 import { AppError } from "./utils/app-error";
 import { globalErrorCatcher } from "./utils/global-error-catcher";
 import { rateLimit } from "express-rate-limit";
-import { checkInvalidProperties } from "./utils/helpers";
 
 import coursesRouter from "./routes/courses-routes";
 import userRouter from "./routes/users-routes";
 import reviewRouter from "./routes/review-routes";
+import cookieParser from "cookie-parser";
 
 const app = express();
 
@@ -22,6 +23,8 @@ app.use(mongoSanitize());
 dotenv.config({ path: "./config.env" });
 
 app.use(express.json({ limit: "10kb" }));
+
+app.use(cookieParser());
 
 app.use(hpp());
 
@@ -38,15 +41,6 @@ const limiter = rateLimit({
 
 app.use(limiter);
 
-// app.use((req: Request, res: Response, next: NextFunction) => {
-//   if (checkInvalidProperties(req.body)) {
-//     return next(
-//       new AppError("Invalid properties [_id, id, createdAt, updatedAt]", 400)
-//     );
-//   }
-
-//   next();
-// });
 app.use("/api/courses", coursesRouter);
 app.use("/api/users", userRouter);
 app.use("/api/reviews", reviewRouter);
