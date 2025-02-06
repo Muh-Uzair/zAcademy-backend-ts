@@ -50,10 +50,7 @@ const userSchema = new Schema<
     photo: {
       type: String,
       trim: true,
-      validate: {
-        validator: (val: string) => isPhoto(val),
-        message: (props) => `${props.value} is not a valid photo URL!`,
-      },
+      default: "default-user.jpg",
     },
     name: {
       type: String,

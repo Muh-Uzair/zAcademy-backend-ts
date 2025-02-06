@@ -15,5 +15,5 @@ export const isPhoneNumber = (val: string) => {
 };
 
 export const isPhoto = (val: string) => {
-  return /^https?:\/\/.+\.(jpg|jpeg|png|gif)$/.test(val);
+  return /^https?:\/\/.+\.(jpg|jpeg|png|gif)$/i.test(val);
 };

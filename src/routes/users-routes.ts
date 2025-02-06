@@ -4,7 +4,9 @@ import {
   getUserDataOnId,
   opBeforeGettingUser,
   opBeforeUpdatingUserData,
+  resizeUserImage,
   updateUserData,
+  uploadUserPhoto,
 } from "../controllers/users-controller";
 import {
   login,
@@ -16,13 +18,20 @@ import {
   restrictTo,
   logout,
 } from "../controllers/auth-controller";
+import multer from "multer";
 
 const router: Router = express.Router();
 
 router
   .route("/")
   .get(protect, restrictTo(["admin"]), getAllUsers)
-  .patch(protect, opBeforeUpdatingUserData, updateUserData);
+  .patch(
+    protect,
+    uploadUserPhoto,
+    resizeUserImage,
+    opBeforeUpdatingUserData,
+    updateUserData
+  );
 router.route("/signup").post(signup);
 router.route("/login").post(login);
 router.route("/forgot-password").post(forgotPassword);

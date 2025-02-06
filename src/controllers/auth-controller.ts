@@ -140,18 +140,19 @@ export const login = async (
       if (!user || !passwordCorrect) {
         next(new AppError("Incorrect email or password", 400));
       } else {
-        const token: string | null = signToken(user._id as string);
-
-        if (!token) {
-          return next(new AppError("Unable to generate jwt token", 500));
+        if (user?.passwordChangedDate) {
+          await UserModel.updateOne(
+            { _id: String(user?._id) },
+            { $unset: { passwordChangedDate: 1 } }
+          );
         }
-        res.status(200).json({
-          status: "success",
-          token,
-          data: {
-            user,
-          },
-        });
+
+        cookieAndResponse(
+          res,
+          next,
+          { status: "success", data: { user } },
+          String(user?._id)
+        );
       }
     }
   } catch (error: unknown) {
@@ -374,20 +375,17 @@ export const updatePassword = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    console.log(req.cookies?.jwt);
     // 1 :  take the use from the request object
     if (!req.user || !req.user.id) {
       return next(new AppError("Provide user on req object", 400));
     }
-
-    console.log("Hello 1");
 
     const user = await UserModel.findById(req.user.id).select("+password");
 
     if (!user) {
       return next(new AppError("No user found", 401));
     }
-
-    console.log("Hello 2");
 
     // 2 :  check that the current password in req body matched the one stored in db
     if (!req.body.currentPassword) {
@@ -399,31 +397,23 @@ export const updatePassword = async (
       return next(new AppError("Provided current password is incorrect", 401));
     }
 
-    console.log("Hello 3");
-
     // 3 :  update properties on user object
     user.password = req.body.password;
     user.confirmPassword = req.body.confirmPassword;
     user.passwordChangedDate = new Date(Date.now() + 20000);
     await user.save();
 
-    console.log("Hello 4");
-
     // 4 :  generate token
     if (!user.id) {
       return next(new AppError("No id on user object", 500));
     }
 
-    const jwt = signToken(user?._id as string);
-
-    // 5 : send response
-    res.status(200).json({
-      status: "success",
-      data: {
-        jwt,
-        user,
-      },
-    });
+    cookieAndResponse(
+      res,
+      next,
+      { status: "success", data: { user } },
+      user?._id as string
+    );
   } catch (err: unknown) {
     globalAsyncCatch(err, next);
   }

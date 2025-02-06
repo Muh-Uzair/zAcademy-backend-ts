@@ -1,3 +1,4 @@
 {
-  "cSpell.words": ["maxlength", "Uzair", "virtuals", "zacademy"]
+  "cSpell.words": ["dsphere", "maxlength", "Uzair", "virtuals", "zacademy"],
+  "typescript.tsdk": "node_modules\\typescript\\lib"
 }

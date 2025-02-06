@@ -246,11 +246,6 @@ export const syncOtherCollections = async (
 
       studentData.associatedCourses = studentData?.associatedCourses?.filter(
         ({ _id: id }) => {
-          console.log(
-            String(id),
-            String(courseId),
-            String(id) === String(courseId)
-          );
           return String(id) !== String(courseId);
         }
       );
