@@ -1,3 +1,6 @@
+import multer, { FileFilterCallback } from "multer";
+import sharp from "sharp";
+
 import { Request, Response, NextFunction } from "express";
 import { CourseInterface, CourseModel } from "../models/courses-model";
 import { apiFeatures } from "../utils/api-features";
@@ -149,6 +152,112 @@ export const checkDiscountValid = async (
     next();
   }
   // if there is no discount then move to next middleware
+};
+
+const multerStorage = multer.memoryStorage();
+
+const multerFilter = (
+  req: Request,
+  file: Express.Multer.File,
+  cb: FileFilterCallback
+) => {
+  if (file?.mimetype.startsWith("image")) {
+    cb(null, true);
+  } else {
+    cb(new AppError("Provided file is not image", 400));
+  }
+};
+
+const upload = multer({
+  storage: multerStorage,
+  fileFilter: multerFilter,
+});
+
+export const uploadCourseImages = upload.fields([
+  { name: "coverImage", maxCount: 1 },
+  { name: "images", maxCount: 3 },
+]);
+
+export const resizeCourseImages = async (
+  req: CustomRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    interface multerFile {
+      fieldname: string;
+      originalname: string;
+      encoding: string;
+      mimetype: string;
+      buffer: Buffer;
+      size: number;
+    }
+
+    interface multerFiles {
+      coverImage?: multerFile[];
+      images?: multerFile[];
+    }
+
+    const files: multerFiles | undefined = req.files as multerFiles;
+
+    // 1 : user does not want to update any of the images so go to the next middleware
+    if (!files.coverImage && !files.images) {
+      return next();
+    }
+
+    // 2 : check the user is authenticated
+    if (!req.user) {
+      return next(
+        new AppError("You are not allowed to perform this action", 401)
+      );
+    }
+
+    // 2 : resize the cover Image
+    const coverImageBuffer =
+      files?.coverImage && files.coverImage[0]?.buffer
+        ? files.coverImage[0].buffer
+        : null;
+    if (coverImageBuffer) {
+      const coverImageFileName = `course-${
+        req.user.id
+      }-${Date.now()}-cover.jpg`;
+      await sharp(coverImageBuffer)
+        .resize(2000, 1333)
+        .toFormat("jpeg")
+        .jpeg({ quality: 90 })
+        .toFile(`public/images/courses/${coverImageFileName}`);
+
+      req.body.coverImage = coverImageFileName;
+    }
+
+    // 3 : resize the rest of the images
+    const images =
+      files?.images && Object.entries(files?.images).length > 0
+        ? files?.images
+        : null;
+
+    if (images) {
+      req.body.images = [];
+      await Promise.all(
+        images.map(async (val, i) => {
+          const imageFileName = `course-${
+            req.user && req.user.id ? req.user.id : null
+          }-${Date.now()}-${i + 1}.jpg`;
+          await sharp(images[i].buffer)
+            .resize(2000, 1333)
+            .toFormat("jpeg")
+            .jpeg({ quality: 90 })
+            .toFile(`public/images/courses/${imageFileName}`);
+
+          req.body.images.push(imageFileName);
+        })
+      );
+    }
+
+    next();
+  } catch (err: unknown) {
+    globalAsyncCatch(err, next);
+  }
 };
 
 export const updateCourseById = updateOneDocument<CourseInterface>(CourseModel);

@@ -16,6 +16,8 @@ import {
   syncOtherCollections,
   findCoursesWithinDistance,
   getInstitutesLocation,
+  uploadCourseImages,
+  resizeCourseImages,
 } from "../controllers/courses-controller";
 import { protect, restrictTo } from "../controllers/auth-controller";
 import reviewRouter from "./review-routes";
@@ -47,6 +49,8 @@ router
     restrictTo(["admin", "teacher"]),
     checkCorrectUserOperation,
     checkDiscountValid,
+    uploadCourseImages,
+    resizeCourseImages,
     updateCourseById
   )
   .delete(

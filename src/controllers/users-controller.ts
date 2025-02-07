@@ -60,29 +60,33 @@ const upload = multer({ storage: multerStorage, fileFilter: multerFilter });
 
 export const uploadUserPhoto = upload.single("photo");
 
-export const resizeUserImage = (
+export const resizeUserImage = async (
   req: CustomRequest,
   res: Response,
   next: NextFunction
-) => {
-  // 1 : if the do not want to change the images just exe the next MW
-  if (!req.file) return next();
+): Promise<void> => {
+  try {
+    // 1 : if the do not want to change the images just exe the next MW
+    if (!req.file) return next();
 
-  // 2 : change the file name
-  if (!req.user) {
-    return next(new AppError("You are not logged in! Please login", 401));
+    // 2 : change the file name
+    if (!req.user) {
+      return next(new AppError("You are not logged in! Please login", 401));
+    }
+
+    req.file.filename = `user-${req.user.id}-${Date.now()}.jpg`;
+
+    // 3 :
+    await sharp(req.file.buffer)
+      .resize(500, 500)
+      .toFormat("jpeg")
+      .jpeg({ quality: 90 })
+      .toFile(`public/images/users/${req.file.filename}`);
+
+    next();
+  } catch (err: unknown) {
+    globalAsyncCatch(err, next);
   }
-
-  req.file.filename = `user-${req.user.id}-${Date.now()}.jpg`;
-
-  // 3 :
-  sharp(req.file.buffer)
-    .resize(500, 500)
-    .toFormat("jpeg")
-    .jpeg({ quality: 90 })
-    .toFile(`public/images/users/${req.file.filename}`);
-
-  next();
 };
 
 export const opBeforeUpdatingUserData = async (

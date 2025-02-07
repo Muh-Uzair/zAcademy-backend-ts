@@ -17,6 +17,7 @@ interface InterfaceInstructor extends Document {
 interface CourseInterface extends Document {
   createdAt: Date;
   coverImage?: string;
+  images?: string[];
   name: string;
   instructor: InterfaceInstructor;
   summary: string;
@@ -40,6 +41,9 @@ const courseSchema = new Schema<CourseInterface>(
     },
     coverImage: {
       type: String,
+    },
+    images: {
+      type: [String],
     },
     name: {
       type: String,
