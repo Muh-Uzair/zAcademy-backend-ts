@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { NextFunction, Request, Response } from "express";
 
-import { sendEmail } from "../routes/email";
+import Email from "../utils/email";
 import { globalAsyncCatch } from "../utils/global-async-catch";
 import { AppError } from "../utils/app-error";
 import { UserInterface, UserModel } from "../models/users-model";
@@ -287,13 +287,23 @@ export const forgotPassword = async (
     user.save();
 
     // 3 : send that token to user via email
-    await sendEmail({
-      email: user.email,
-      subject: "Reset token is valid 10 mins only",
-      message: `make request to ${req.protocol}://${req.get(
+    // await sendEmail({
+    //   email: user.email,
+    //   subject: "Reset token is valid 10 mins only",
+    //   message: `make request to ${req.protocol}://${req.get(
+    //     "host"
+    //   )}/api/users/reset-password/${originalResetToken}`,
+    // });
+
+    await new Email(
+      '"Muhammad Uzair" <admin@zAcademy.io>',
+      user.email as string
+    ).sendResetEmail(
+      "Reset token is valid 10 mins only",
+      `make request to ${req.protocol}://${req.get(
         "host"
-      )}/api/users/reset-password/${originalResetToken}`,
-    });
+      )}/api/users/reset-password/${originalResetToken}`
+    );
 
     res.status(200).json({
       status: "success",
@@ -375,7 +385,6 @@ export const updatePassword = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    console.log(req.cookies?.jwt);
     // 1 :  take the use from the request object
     if (!req.user || !req.user.id) {
       return next(new AppError("Provide user on req object", 400));
