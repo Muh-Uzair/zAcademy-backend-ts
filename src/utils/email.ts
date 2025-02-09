@@ -1,3 +1,6 @@
+import ejs from "ejs";
+import { convert } from "html-to-text";
+import path from "node:path";
 import nodemailer from "nodemailer";
 
 // THIS WAS PREVIOUS APPROACH
@@ -34,11 +37,8 @@ export default class Email {
     this.emailTo = emailTo;
   }
 
-  transporter() {
-    if (process.env.NODE_ENV === "production") {
-      console.log("transporter in production mode");
-    }
-
+  // FUNCTION this creates a transporter
+  private transporter() {
     return nodemailer.createTransport({
       host: "sandbox.smtp.mailtrap.io",
       port: 2525,
@@ -49,16 +49,39 @@ export default class Email {
     });
   }
 
-  async send(subject: string, text: string) {
+  // FUNCTION this sends the email
+  async send(subject: string, text: string, html: string) {
     await this.transporter().sendMail({
       from: this.emailFrom,
       to: this.emailTo,
       subject,
       text,
+      html,
     });
   }
 
-  async sendResetEmail(subject: string, text: string) {
-    await this.send(subject, text);
+  // FUNCTION returns htm string from the path which is specified
+  private async renderTemplate(
+    templateName: string,
+    data: object
+  ): Promise<string> {
+    const templatePath = path.join(
+      __dirname,
+      "../data/templates/email-template",
+      `${templateName}.ejs`
+    );
+    return ejs.renderFile(templatePath, data);
+  }
+
+  // FUNCTION user interact with this
+  async sendResetEmail(subject: string, templateName: string, data: object) {
+    // 1 : this renders the associated template
+    const html: string = await this.renderTemplate("email-template", data);
+
+    // 2 : this extracts the string from html
+    const text = convert(html);
+
+    // 3 : we send the email
+    await this.send(subject, text, html);
   }
 }

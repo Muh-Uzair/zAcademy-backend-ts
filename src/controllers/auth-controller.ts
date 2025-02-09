@@ -298,12 +298,9 @@ export const forgotPassword = async (
     await new Email(
       '"Muhammad Uzair" <admin@zAcademy.io>',
       user.email as string
-    ).sendResetEmail(
-      "Reset token is valid 10 mins only",
-      `make request to ${req.protocol}://${req.get(
-        "host"
-      )}/api/users/reset-password/${originalResetToken}`
-    );
+    ).sendResetEmail("Reset token is valid 10 mins only", "email-template", {
+      resetToken: originalResetToken,
+    });
 
     res.status(200).json({
       status: "success",

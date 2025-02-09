@@ -30,8 +30,6 @@ const globalErrorCatcher = (
   res: Response,
   next: NextFunction
 ) => {
-  console.log(process.env.NODE_ENV);
-
   if (process.env.NODE_ENV === "development") {
     sendDevelopmentError(err, res);
   }

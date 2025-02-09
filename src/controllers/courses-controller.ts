@@ -1,5 +1,6 @@
 import multer, { FileFilterCallback } from "multer";
 import sharp from "sharp";
+import Stripe from "stripe";
 
 import { Request, Response, NextFunction } from "express";
 import { CourseInterface, CourseModel } from "../models/courses-model";
@@ -598,8 +599,54 @@ export const aliasTop5Longest = (
   next();
 };
 
-export const paymentConfirmed = (): boolean => {
-  return true;
+// FUNCTION-GROUP
+export const createStripeSession = async (
+  courseId: string,
+  user: UserInterface,
+  next: NextFunction
+): Promise<Stripe.Response<Stripe.Checkout.Session> | void> => {
+  // 1 : get the course
+  const course = await CourseModel.findOne({ _id: courseId });
+
+  if (!course) {
+    return next(new AppError("No course with provided id", 400));
+  }
+
+  // 2 : create a stripe object
+  const stripe = new Stripe(process.env.STRIPE_SEC_KEY as string, {
+    apiVersion: "2025-01-27.acacia",
+  });
+
+  if (!stripe) {
+    return next(new AppError("Unable to create a stripe object", 500));
+  }
+
+  // 3 : create a session with that
+  const stripeSession = await stripe.checkout.sessions.create({
+    payment_method_types: ["card"],
+    client_reference_id: String(user?.id),
+    customer_email: user?.email,
+    success_url: "https://www.wwe.com/",
+    line_items: [
+      {
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: course.name,
+          },
+          unit_amount: course.price * 100,
+        },
+        quantity: 1,
+      },
+    ],
+    mode: "payment",
+  });
+
+  if (!stripeSession) {
+    return next(new AppError("Unable to create a stripe session", 500));
+  }
+
+  return stripeSession;
 };
 
 export const buyCourse = async (
@@ -608,17 +655,25 @@ export const buyCourse = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    // 1 : check if payment is confirmed
-    if (!paymentConfirmed()) {
-      return next(new AppError("Payment not confirmed", 400));
-    }
-
-    // 2 : update the course and user
+    // 1 : take course id out
     if (!req.query.courseId) {
       return next(new AppError("Course id not provided", 400));
     }
-
     const { courseId } = req.query;
+
+    // 2 : take user if out
+    const userId = req.user && req.user.id ? req.user.id : null;
+    if (!userId && !req.user) {
+      return next(new AppError("User id not found in request object", 500));
+    }
+
+    // 3 : create a session
+    const stripeSession: Stripe.Response<Stripe.Checkout.Session> | void =
+      await createStripeSession(
+        String(courseId),
+        req.user as UserInterface,
+        next
+      );
 
     const updatedCourse = await CourseModel.findByIdAndUpdate(
       courseId,
@@ -631,9 +686,7 @@ export const buyCourse = async (
     }
 
     // 3 : update the user
-    if (!req.user?.id) {
-      return next(new AppError("User id not found in request object", 500));
-    }
+
     const updatedUser = await UserModel.findByIdAndUpdate(
       req.user?.id,
       { $addToSet: { associatedCourses: updatedCourse._id } },
@@ -649,6 +702,7 @@ export const buyCourse = async (
       data: {
         updatedCourse,
         updatedUser,
+        stripeSession,
       },
     });
   } catch (err: unknown) {
