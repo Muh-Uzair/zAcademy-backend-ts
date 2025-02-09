@@ -46,7 +46,7 @@ mongoose
 
 const server = app.listen(process.env.PORT, () => {
   console.log(
-    `Server is listening on port ${process.env.PORT} | request to 127.0.0.1:3000`
+    `Server is listening on port ${process.env.PORT} | request to 127.0.0.1:4000`
   );
 });
 

@@ -35,9 +35,7 @@ router.route("/top-5-courses").get(aliasTop5Courses, getAllCourses);
 router.route("/top-5-cheapest").get(aliasTop5Cheapest, getAllCourses);
 router.route("/top-5-longest").get(aliasTop5Longest, getAllCourses);
 router.route("/best-course").get(getBestCourse);
-router
-  .route("/buy-course")
-  .patch(protect, restrictTo(["admin", "student"]), buyCourse);
+router.route("/buy-course").patch(buyCourse);
 router.route("/within").get(findCoursesWithinDistance);
 router.route("/get-institutes-location").get(getInstitutesLocation);
 

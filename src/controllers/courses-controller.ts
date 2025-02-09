@@ -602,7 +602,7 @@ export const aliasTop5Longest = (
 // FUNCTION-GROUP
 export const createStripeSession = async (
   courseId: string,
-  user: UserInterface,
+  userId: string,
   next: NextFunction
 ): Promise<Stripe.Response<Stripe.Checkout.Session> | void> => {
   // 1 : get the course
@@ -610,6 +610,12 @@ export const createStripeSession = async (
 
   if (!course) {
     return next(new AppError("No course with provided id", 400));
+  }
+
+  const user = await UserModel.findOne({ _id: userId });
+
+  if (!user) {
+    return next(new AppError("No user for provided id", 400));
   }
 
   // 2 : create a stripe object
@@ -655,6 +661,7 @@ export const buyCourse = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    console.log(req.query);
     // 1 : take course id out
     if (!req.query.courseId) {
       return next(new AppError("Course id not provided", 400));
@@ -662,22 +669,18 @@ export const buyCourse = async (
     const { courseId } = req.query;
 
     // 2 : take user if out
-    const userId = req.user && req.user.id ? req.user.id : null;
-    if (!userId && !req.user) {
+    const { userId } = req.query;
+    if (!userId) {
       return next(new AppError("User id not found in request object", 500));
     }
 
     // 3 : create a session
     const stripeSession: Stripe.Response<Stripe.Checkout.Session> | void =
-      await createStripeSession(
-        String(courseId),
-        req.user as UserInterface,
-        next
-      );
+      await createStripeSession(String(courseId), String(userId), next);
 
     const updatedCourse = await CourseModel.findByIdAndUpdate(
       courseId,
-      { $addToSet: { students: req.user?.id } },
+      { $addToSet: { students: userId } },
       { returnDocument: "after", runValidators: true }
     );
 
@@ -685,10 +688,9 @@ export const buyCourse = async (
       return next(new AppError("Error in updating course", 500));
     }
 
-    // 3 : update the user
-
+    // 4 : update the user
     const updatedUser = await UserModel.findByIdAndUpdate(
-      req.user?.id,
+      userId,
       { $addToSet: { associatedCourses: updatedCourse._id } },
       { returnDocument: "after", runValidators: true }
     );
