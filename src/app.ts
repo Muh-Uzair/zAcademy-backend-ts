@@ -5,6 +5,7 @@ import helmet from "helmet";
 import mongoSanitize from "express-mongo-sanitize";
 import hpp from "hpp";
 import cors from "cors";
+import compression from "compression";
 
 import { AppError } from "./utils/app-error";
 import { globalErrorCatcher } from "./utils/global-error-catcher";
@@ -30,6 +31,8 @@ app.use(cookieParser());
 app.use(hpp());
 
 app.use(cors());
+
+app.use(compression());
 
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));

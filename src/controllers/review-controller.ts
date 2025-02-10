@@ -202,8 +202,6 @@ export const checkCorrectUserOperation = async (
       associatedCourse: courseId,
     });
 
-    console.log(existingReview);
-
     if (existingReview) {
       req.params.id = String(existingReview?._id);
       next();

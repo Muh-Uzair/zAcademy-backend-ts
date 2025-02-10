@@ -388,8 +388,6 @@ export const findCoursesWithinDistance = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    console.log(req.query);
-
     // 1 : take the distance out of query
     const distance: string | undefined = req.query?.distance as
       | string
@@ -661,7 +659,6 @@ export const buyCourse = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    console.log(req.query);
     // 1 : take course id out
     if (!req.query.courseId) {
       return next(new AppError("Course id not provided", 400));
