@@ -34,6 +34,7 @@ const signToken = (id: string): string | null => {
 
 // FUNCTION
 const cookieAndResponse = (
+  req: Request,
   res: Response,
   next: NextFunction,
   actualResponse: object,
@@ -46,26 +47,13 @@ const cookieAndResponse = (
     return next(new AppError("Unable to generate jwt token", 500));
   }
 
-  // 2 : send it in cookie
-  if (process.env.NODE_ENV === "production") {
-    res.cookie("jwt", jwt, {
-      expires: new Date(
-        Date.now() +
-          Number(process.env.COOKIE_EXPIRES_TIME) * 24 * 60 * 60 * 1000
-      ),
-      secure: true,
-      httpOnly: true,
-    });
-  }
-  if (process.env.NODE_ENV === "development") {
-    res.cookie("jwt", jwt, {
-      expires: new Date(
-        Date.now() +
-          +Number(process.env.COOKIE_EXPIRES_TIME) * 24 * 60 * 60 * 1000
-      ),
-      httpOnly: true,
-    });
-  }
+  res.cookie("jwt", jwt, {
+    expires: new Date(
+      Date.now() + Number(process.env.COOKIE_EXPIRES_TIME) * 24 * 60 * 60 * 1000
+    ),
+    secure: req.secure || req.headers["x-forwarded-proto"] === "https",
+    httpOnly: true,
+  });
 
   // 3 : send a response
   res.status(200).json({ ...actualResponse, jwt });
@@ -100,6 +88,7 @@ export const signup = async (
 
     // 3 : send a response with JWT  in cookie
     cookieAndResponse(
+      req,
       res,
       next,
       {
@@ -148,6 +137,7 @@ export const login = async (
         }
 
         cookieAndResponse(
+          req,
           res,
           next,
           { status: "success", data: { user } },
@@ -415,6 +405,7 @@ export const updatePassword = async (
     }
 
     cookieAndResponse(
+      req,
       res,
       next,
       { status: "success", data: { user } },

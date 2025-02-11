@@ -54,5 +54,8 @@
     "@types/stripe": "^8.0.416",
     "globals": "^15.14.0",
     "nodemon": "^3.1.9"
+  },
+  "engines": {
+    "node": "^20.0.0"
   }
 }
