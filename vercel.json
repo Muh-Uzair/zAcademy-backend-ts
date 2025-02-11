@@ -1,0 +1,4 @@
+{
+  "version": 2,
+  "rewrites": [{ "source": "src/server.ts", "destination": "src/app.ts" }]
+}

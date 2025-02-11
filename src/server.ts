@@ -63,12 +63,3 @@ process.on("unhandledRejection", (err: unknown) => {
     process.exit(1);
   });
 });
-
-// Listening for SIGTERM from heroku
-process.on("SIGTERM", () => {
-  console.log("SIGTERM received shutting down gracefully");
-
-  server.close(() => {
-    console.log("Process terminated");
-  });
-});
