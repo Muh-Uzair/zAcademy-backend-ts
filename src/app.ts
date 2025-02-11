@@ -16,6 +16,7 @@ import userRouter from "./routes/users-routes";
 import reviewRouter from "./routes/review-routes";
 import cookieParser from "cookie-parser";
 import router from "./routes/review-routes";
+import { CourseModel } from "./models/courses-model";
 
 const app = express();
 
@@ -58,11 +59,19 @@ app.use(limiter);
 app.use("/api/courses", coursesRouter);
 app.use("/api/users", userRouter);
 app.use("/api/reviews", reviewRouter);
-app.use("/example", (req: Request, res: Response, next: NextFunction) => {
-  res.status(200).json({
-    status: "success",
-  });
-});
+app.use(
+  "/example",
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const courses = await CourseModel.find();
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        courses,
+      },
+    });
+  }
+);
 
 const exampleRouter2: Router = express.Router();
 app.use("/exampleRouter", exampleRouter2);
