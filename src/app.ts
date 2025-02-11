@@ -74,7 +74,7 @@ app.use(
 );
 
 const exampleRouter2: Router = express.Router();
-app.use("/exampleRouter", exampleRouter2);
+app.use("/exampleRoute", exampleRouter2);
 exampleRouter2
   .route("/")
   .get((req: Request, res: Response, next: NextFunction) => {
