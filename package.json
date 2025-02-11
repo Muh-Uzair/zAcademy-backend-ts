@@ -4,7 +4,9 @@
   "main": "server.ts",
   "scripts": {
     "dev": "nodemon",
-    "debug": "ndb server.ts"
+    "debug": "ndb server.ts",
+    "build": "tsc",
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "",

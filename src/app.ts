@@ -54,6 +54,11 @@ app.use(limiter);
 app.use("/api/courses", coursesRouter);
 app.use("/api/users", userRouter);
 app.use("/api/reviews", reviewRouter);
+app.use("/example", (req: Request, res: Response, next: NextFunction) => {
+  res.status(200).json({
+    status: "success",
+  });
+});
 
 app.all("*", (req: Request, res: Response, next: NextFunction) => {
   next(
