@@ -13,6 +13,7 @@ process.on("uncaughtException", (err) => {
     }
     process.exit(1);
 });
+const app_1 = __importDefault(require("./app"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const mongoose_1 = __importDefault(require("mongoose"));
 dotenv_1.default.config({ path: "./config.env" });
@@ -33,21 +34,20 @@ mongoose_1.default
 //   .connect(dbConnectionString)
 //   .then(() => console.log("connection to local db success"));
 // //___________________________
-// const port = process.env.PORT || 3000;
-// const server = app.listen(port, () => {
-//   console.log(
-//     `Server is listening on port ${process.env.PORT} | request to 127.0.0.1:4000`
-//   );
-// });
-// // if any async returns an error and that is not handled this will catch it
-// process.on("unhandledRejection", (err: unknown) => {
-//   console.log("Unhandled error rejections");
-//   if (err instanceof Error) {
-//     console.log(err.name, err.message);
-//   } else {
-//     console.log(err);
-//   }
-//   server.close(() => {
-//     process.exit(1);
-//   });
-// });
+const port = process.env.PORT || 3000;
+const server = app_1.default.listen(port, () => {
+    console.log(`Server is listening on port ${process.env.PORT} | request to 127.0.0.1:4000`);
+});
+// if any async returns an error and that is not handled this will catch it
+process.on("unhandledRejection", (err) => {
+    console.log("Unhandled error rejections");
+    if (err instanceof Error) {
+        console.log(err.name, err.message);
+    }
+    else {
+        console.log(err);
+    }
+    server.close(() => {
+        process.exit(1);
+    });
+});

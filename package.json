@@ -6,7 +6,7 @@
     "dev": "nodemon",
     "debug": "ndb server.ts",
     "build": "tsc",
-    "start": "node server.js"
+    "start": "node dist/server.js"
   },
   "keywords": [],
   "author": "",

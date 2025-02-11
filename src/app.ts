@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction } from "express";
+import express, { Request, Response, NextFunction, Router } from "express";
 import morgan from "morgan";
 import dotenv from "dotenv";
 import helmet from "helmet";
@@ -15,6 +15,7 @@ import coursesRouter from "./routes/courses-routes";
 import userRouter from "./routes/users-routes";
 import reviewRouter from "./routes/review-routes";
 import cookieParser from "cookie-parser";
+import router from "./routes/review-routes";
 
 const app = express();
 
@@ -30,9 +31,12 @@ app.use(cookieParser());
 
 app.use(hpp());
 
-app.use(cors());
-
-app.options("*", cors());
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+  })
+);
 
 app.use(compression());
 
@@ -59,6 +63,16 @@ app.use("/example", (req: Request, res: Response, next: NextFunction) => {
     status: "success",
   });
 });
+
+const exampleRouter2: Router = express.Router();
+app.use("/exampleRouter", exampleRouter2);
+exampleRouter2
+  .route("/")
+  .get((req: Request, res: Response, next: NextFunction) => {
+    res.status(200).json({
+      status: "success example",
+    });
+  });
 
 app.all("*", (req: Request, res: Response, next: NextFunction) => {
   next(

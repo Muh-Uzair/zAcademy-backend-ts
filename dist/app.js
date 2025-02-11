@@ -42,6 +42,11 @@ app.use(limiter);
 app.use("/api/courses", courses_routes_1.default);
 app.use("/api/users", users_routes_1.default);
 app.use("/api/reviews", review_routes_1.default);
+app.use("/example", (req, res, next) => {
+    res.status(200).json({
+        status: "success",
+    });
+});
 app.all("*", (req, res, next) => {
     next(new app_error_1.AppError(`Can't find ${req.protocol}://${req.ip}:${process.env.PORT}/${req.originalUrl} on this server!`, 404));
 });
