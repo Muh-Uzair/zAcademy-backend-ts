@@ -64,6 +64,9 @@ app.use(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const courses = await CourseModel.find();
 
+    console.log("Course");
+    console.log(courses);
+
     res.status(200).json({
       status: "success",
       data: {

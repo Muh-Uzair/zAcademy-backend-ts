@@ -64,7 +64,7 @@ app.use("/example", (req, res, next) => __awaiter(void 0, void 0, void 0, functi
     });
 }));
 const exampleRouter2 = express_1.default.Router();
-app.use("/exampleRouter", exampleRouter2);
+app.use("/exampleRoute", exampleRouter2);
 exampleRouter2
     .route("/")
     .get((req, res, next) => {
