@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "server.ts",
   "scripts": {
-    "start": "nodemon",
+    "dev": "nodemon",
+    "start": "node server.ts",
     "debug": "ndb server.ts"
   },
   "keywords": [],
