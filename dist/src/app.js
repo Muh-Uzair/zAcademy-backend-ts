@@ -40,7 +40,6 @@ app.use((0, cors_1.default)({
     credentials: true,
 }));
 app.use((0, compression_1.default)());
-app.enable("trust proxy");
 if (process.env.NODE_ENV === "development") {
     app.use((0, morgan_1.default)("dev"));
 }
@@ -54,10 +53,11 @@ app.use(limiter);
 app.use("/api/courses", courses_routes_1.default);
 app.use("/api/users", users_routes_1.default);
 app.use("/api/reviews", review_routes_1.default);
-app.use("/example", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+app.get("/example", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const courses = yield courses_model_1.CourseModel.find();
     res.status(200).json({
-        status: "success",
+        status: "success hello",
+        results: courses === null || courses === void 0 ? void 0 : courses.length,
         data: {
             courses,
         },

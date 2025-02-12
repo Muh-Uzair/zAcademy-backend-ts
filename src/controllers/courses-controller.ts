@@ -598,7 +598,118 @@ export const aliasTop5Longest = (
 };
 
 // FUNCTION-GROUP
+
+interface SessionDataInterface {
+  client_reference_id: string;
+  customer_email: string;
+}
+
+const createBookingCheckout = async (
+  sessionData: SessionDataInterface,
+  next: NextFunction
+): Promise<void> => {
+  // const stripeSession = await stripe.checkout.sessions.create({
+  //   payment_method_types: ["card"],
+  //   client_reference_id: String(course?.id),
+  //   customer_email: user?.email,
+  //   success_url: `${req.protocol}://${req.get("host")}/`,
+  //   line_items: [
+  //     {
+  //       price_data: {
+  //         currency: "usd",
+  //         product_data: {
+  //           name: course.name,
+  //         },
+  //         unit_amount: course.price * 100,
+  //       },
+  //       quantity: 1,
+  //     },
+  //   ],
+  //   mode: "payment",
+  // });
+  try {
+    const courseId: string | null = sessionData?.client_reference_id
+      ? sessionData?.client_reference_id
+      : null;
+
+    if (!courseId) {
+      return next(new AppError("No course id provided", 400));
+    }
+
+    const userEmail: string | null = sessionData?.customer_email
+      ? sessionData?.customer_email
+      : null;
+
+    if (!userEmail) {
+      return next(new AppError("No user id provided", 400));
+    }
+
+    const user = await UserModel.findOne({ email: userEmail });
+
+    if (!user) {
+      return next(new AppError("No user found with provided email", 400));
+    }
+
+    const userId: string = String(user._id);
+
+    const updatedCourse = await CourseModel.findByIdAndUpdate(
+      courseId,
+      { $addToSet: { students: userId } },
+      { returnDocument: "after", runValidators: true }
+    );
+
+    if (!updatedCourse) {
+      return next(new AppError("Error in updating course", 500));
+    }
+
+    // 4 : update the user
+    const updatedUser = await UserModel.findByIdAndUpdate(
+      userId,
+      { $addToSet: { associatedCourses: updatedCourse._id } },
+      { returnDocument: "after", runValidators: true }
+    );
+
+    if (!updatedUser) {
+      return next(new AppError("Error in updating user", 500));
+    }
+  } catch (err: unknown) {
+    return next(new AppError("An error occurred while buying course", 500));
+  }
+};
+
+export const createWebhookCheckout = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<any> => {
+  const webhookSignature = req.headers["stripe-signature"] as string;
+
+  let event;
+  try {
+    event = Stripe.webhooks.constructEvent(
+      req.body,
+      webhookSignature,
+      process.env.STRIPE_WEB_HOOK_SECRET as string
+    );
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      return res.status(400).send(`Webhook error: ${err.message}`);
+    }
+    return res.status(400).send(`Webhook error`);
+  }
+
+  if (event.type === "checkout.session.completed") {
+    await createBookingCheckout(
+      event.data.object as SessionDataInterface,
+      next
+    );
+  }
+
+  res.status(200).json({ received: true });
+};
+
 export const createStripeSession = async (
+  req: Request,
   courseId: string,
   userId: string,
   next: NextFunction
@@ -628,9 +739,9 @@ export const createStripeSession = async (
   // 3 : create a session with that
   const stripeSession = await stripe.checkout.sessions.create({
     payment_method_types: ["card"],
-    client_reference_id: String(user?.id),
+    client_reference_id: String(course?.id),
     customer_email: user?.email,
-    success_url: "https://www.wwe.com/",
+    success_url: `${req.protocol}://${req.get("host")}/`,
     line_items: [
       {
         price_data: {
@@ -659,6 +770,7 @@ export const buyCourse = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    console.log(req.query);
     // 1 : take course id out
     if (!req.query.courseId) {
       return next(new AppError("Course id not provided", 400));
@@ -673,36 +785,10 @@ export const buyCourse = async (
 
     // 3 : create a session
     const stripeSession: Stripe.Response<Stripe.Checkout.Session> | void =
-      await createStripeSession(String(courseId), String(userId), next);
-
-    const updatedCourse = await CourseModel.findByIdAndUpdate(
-      courseId,
-      { $addToSet: { students: userId } },
-      { returnDocument: "after", runValidators: true }
-    );
-
-    if (!updatedCourse) {
-      return next(new AppError("Error in updating course", 500));
-    }
-
-    // 4 : update the user
-    const updatedUser = await UserModel.findByIdAndUpdate(
-      userId,
-      { $addToSet: { associatedCourses: updatedCourse._id } },
-      { returnDocument: "after", runValidators: true }
-    );
-
-    if (!updatedUser) {
-      return next(new AppError("Error in updating user", 500));
-    }
+      await createStripeSession(req, String(courseId), String(userId), next);
 
     res.status(200).json({
-      status: "success",
-      data: {
-        updatedCourse,
-        updatedUser,
-        stripeSession,
-      },
+      stripeSession,
     });
   } catch (err: unknown) {
     globalAsyncCatch(err, next);

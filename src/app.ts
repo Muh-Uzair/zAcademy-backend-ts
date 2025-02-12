@@ -17,8 +17,19 @@ import reviewRouter from "./routes/review-routes";
 import cookieParser from "cookie-parser";
 import router from "./routes/review-routes";
 import { CourseModel } from "./models/courses-model";
+import { globalAsyncCatch } from "./utils/global-async-catch";
+import { ReviewModel } from "./models/review-model";
+import { createWebhookCheckout } from "./controllers/courses-controller";
 
 const app = express();
+
+app.post(
+  "/webhook-checkout",
+  express.raw({ type: "application/json" }),
+  createWebhookCheckout
+);
+
+app.set("trust proxy", true);
 
 app.use(helmet());
 
@@ -32,16 +43,9 @@ app.use(cookieParser());
 
 app.use(hpp());
 
-app.use(
-  cors({
-    origin: true,
-    credentials: true,
-  })
-);
+app.use(cors());
 
 app.use(compression());
-
-app.enable("trust proxy");
 
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
@@ -59,20 +63,22 @@ app.use(limiter);
 app.use("/api/courses", coursesRouter);
 app.use("/api/users", userRouter);
 app.use("/api/reviews", reviewRouter);
-app.use(
+app.get(
   "/example",
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const courses = await CourseModel.find();
+    try {
+      const reviewId = String("67aa083ef623793cea967156");
+      const review = await ReviewModel.findById(reviewId).select("review");
 
-    console.log("Course");
-    console.log(courses);
-
-    res.status(200).json({
-      status: "success",
-      data: {
-        courses,
-      },
-    });
+      res.status(200).json({
+        status: "success hello",
+        data: {
+          review,
+        },
+      });
+    } catch (err: unknown) {
+      globalAsyncCatch(err, next);
+    }
   }
 );
 
@@ -85,6 +91,15 @@ exampleRouter2
       status: "success example",
     });
   });
+
+app.get("/", (req: Request, res: Response, next: NextFunction) => {
+  res.status(200).json({
+    status: "success",
+    data: {
+      message: "Hello from back end",
+    },
+  });
+});
 
 app.all("*", (req: Request, res: Response, next: NextFunction) => {
   next(

@@ -51,7 +51,6 @@ const cookieAndResponse = (
     expires: new Date(
       Date.now() + Number(process.env.COOKIE_EXPIRES_TIME) * 24 * 60 * 60 * 1000
     ),
-    secure: req.secure || req.headers["x-forwarded-proto"] === "https",
     httpOnly: true,
   });
 
