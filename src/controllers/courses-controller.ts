@@ -14,7 +14,7 @@ import {
   getOneDoc,
   updateOneDocument,
 } from "./handlerFactory";
-import { Document } from "mongoose";
+import mongoose, { Document } from "mongoose";
 import { ReviewModel } from "../models/review-model";
 
 interface CustomRequest extends Request {
@@ -598,35 +598,15 @@ export const aliasTop5Longest = (
 };
 
 // FUNCTION-GROUP
-
 interface SessionDataInterface {
-  client_reference_id: string;
-  customer_email: string;
+  client_reference_id: string | null;
+  customer_email: string | null;
 }
 
 const createBookingCheckout = async (
   sessionData: SessionDataInterface,
   next: NextFunction
 ): Promise<void> => {
-  // const stripeSession = await stripe.checkout.sessions.create({
-  //   payment_method_types: ["card"],
-  //   client_reference_id: String(course?.id),
-  //   customer_email: user?.email,
-  //   success_url: `${req.protocol}://${req.get("host")}/`,
-  //   line_items: [
-  //     {
-  //       price_data: {
-  //         currency: "usd",
-  //         product_data: {
-  //           name: course.name,
-  //         },
-  //         unit_amount: course.price * 100,
-  //       },
-  //       quantity: 1,
-  //     },
-  //   ],
-  //   mode: "payment",
-  // });
   try {
     const courseId: string | null = sessionData?.client_reference_id
       ? sessionData?.client_reference_id
@@ -689,7 +669,7 @@ export const createWebhookCheckout = async (
     event = Stripe.webhooks.constructEvent(
       req.body,
       webhookSignature,
-      process.env.STRIPE_WEB_HOOK_SECRET as string
+      "whsec_BTjVgRkduSl7nyckDezQijic7khMCfq2"
     );
   } catch (err: unknown) {
     if (err instanceof Error) {
@@ -699,10 +679,11 @@ export const createWebhookCheckout = async (
   }
 
   if (event.type === "checkout.session.completed") {
-    await createBookingCheckout(
-      event.data.object as SessionDataInterface,
-      next
-    );
+    const dataObj: SessionDataInterface = {
+      client_reference_id: event.data.object.client_reference_id,
+      customer_email: event.data.object.customer_email,
+    };
+    await createBookingCheckout(dataObj, next);
   }
 
   res.status(200).json({ received: true });
@@ -715,13 +696,15 @@ export const createStripeSession = async (
   next: NextFunction
 ): Promise<Stripe.Response<Stripe.Checkout.Session> | void> => {
   // 1 : get the course
-  const course = await CourseModel.findOne({ _id: courseId });
+  const course = await CourseModel.findById(
+    new mongoose.Types.ObjectId(courseId)
+  );
 
   if (!course) {
     return next(new AppError("No course with provided id", 400));
   }
 
-  const user = await UserModel.findOne({ _id: userId });
+  const user = await UserModel.findById(new mongoose.Types.ObjectId(userId));
 
   if (!user) {
     return next(new AppError("No user for provided id", 400));
@@ -739,7 +722,7 @@ export const createStripeSession = async (
   // 3 : create a session with that
   const stripeSession = await stripe.checkout.sessions.create({
     payment_method_types: ["card"],
-    client_reference_id: String(course?.id),
+    client_reference_id: course?.id,
     customer_email: user?.email,
     success_url: `${req.protocol}://${req.get("host")}/`,
     line_items: [
@@ -770,7 +753,6 @@ export const buyCourse = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    console.log(req.query);
     // 1 : take course id out
     if (!req.query.courseId) {
       return next(new AppError("Course id not provided", 400));
