@@ -68,6 +68,8 @@
 //   });
 // });
 
+// .vercel deleted
+
 // Top: Handle uncaught exceptions
 process.on("uncaughtException", (err: unknown) => {
   console.log("Uncaught exception");
