@@ -27,18 +27,19 @@ const courses_routes_1 = __importDefault(require("./routes/courses-routes"));
 const users_routes_1 = __importDefault(require("./routes/users-routes"));
 const review_routes_1 = __importDefault(require("./routes/review-routes"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
-const courses_model_1 = require("./models/courses-model");
+const global_async_catch_1 = require("./utils/global-async-catch");
+const review_model_1 = require("./models/review-model");
+const courses_controller_1 = require("./controllers/courses-controller");
 const app = (0, express_1.default)();
+app.post("/webhook-checkout", express_1.default.raw({ type: "application/json" }), courses_controller_1.createWebhookCheckout);
+app.set("trust proxy", true);
 app.use((0, helmet_1.default)());
 app.use((0, express_mongo_sanitize_1.default)());
 dotenv_1.default.config({ path: "./config.env" });
 app.use(express_1.default.json({ limit: "10kb" }));
 app.use((0, cookie_parser_1.default)());
 app.use((0, hpp_1.default)());
-app.use((0, cors_1.default)({
-    origin: true,
-    credentials: true,
-}));
+app.use((0, cors_1.default)());
 app.use((0, compression_1.default)());
 if (process.env.NODE_ENV === "development") {
     app.use((0, morgan_1.default)("dev"));
@@ -54,14 +55,19 @@ app.use("/api/courses", courses_routes_1.default);
 app.use("/api/users", users_routes_1.default);
 app.use("/api/reviews", review_routes_1.default);
 app.get("/example", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const courses = yield courses_model_1.CourseModel.find();
-    res.status(200).json({
-        status: "success hello",
-        results: courses === null || courses === void 0 ? void 0 : courses.length,
-        data: {
-            courses,
-        },
-    });
+    try {
+        const reviewId = String("67aa083ef623793cea967156");
+        const review = yield review_model_1.ReviewModel.findById(reviewId).select("review");
+        res.status(200).json({
+            status: "success hello",
+            data: {
+                review,
+            },
+        });
+    }
+    catch (err) {
+        (0, global_async_catch_1.globalAsyncCatch)(err, next);
+    }
 }));
 const exampleRouter2 = express_1.default.Router();
 app.use("/exampleRoute", exampleRouter2);
@@ -70,6 +76,14 @@ exampleRouter2
     .get((req, res, next) => {
     res.status(200).json({
         status: "success example",
+    });
+});
+app.get("/", (req, res, next) => {
+    res.status(200).json({
+        status: "success",
+        data: {
+            message: "Hello from back end",
+        },
     });
 });
 app.all("*", (req, res, next) => {

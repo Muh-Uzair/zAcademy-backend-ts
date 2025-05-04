@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.buyCourse = exports.createStripeSession = exports.aliasTop5Longest = exports.aliasTop5Cheapest = exports.aliasTop5Courses = exports.getBestCourse = exports.getCoursesStats = exports.getInstitutesLocation = exports.findCoursesWithinDistance = exports.deleteCourseById = exports.syncOtherCollections = exports.updateCourseById = exports.resizeCourseImages = exports.uploadCourseImages = exports.checkDiscountValid = exports.checkCorrectUserOperation = exports.getCourseById = exports.createCourse = exports.getAllCourses = void 0;
+exports.buyCourse = exports.createStripeSession = exports.createWebhookCheckout = exports.aliasTop5Longest = exports.aliasTop5Cheapest = exports.aliasTop5Courses = exports.getBestCourse = exports.getCoursesStats = exports.getInstitutesLocation = exports.findCoursesWithinDistance = exports.deleteCourseById = exports.syncOtherCollections = exports.updateCourseById = exports.resizeCourseImages = exports.uploadCourseImages = exports.checkDiscountValid = exports.checkCorrectUserOperation = exports.getCourseById = exports.createCourse = exports.getAllCourses = void 0;
 const multer_1 = __importDefault(require("multer"));
 const sharp_1 = __importDefault(require("sharp"));
 const stripe_1 = __importDefault(require("stripe"));
@@ -21,6 +21,7 @@ const app_error_1 = require("../utils/app-error");
 const global_async_catch_1 = require("../utils/global-async-catch");
 const users_model_1 = require("../models/users-model");
 const handlerFactory_1 = require("./handlerFactory");
+const mongoose_1 = __importDefault(require("mongoose"));
 const review_model_1 = require("../models/review-model");
 // FUNCTION
 exports.getAllCourses = (0, handlerFactory_1.getAllDocs)(courses_model_1.CourseModel);
@@ -430,30 +431,82 @@ const aliasTop5Longest = (req, res, next) => {
     next();
 };
 exports.aliasTop5Longest = aliasTop5Longest;
-// FUNCTION-GROUP
-const createStripeSession = (courseId, userId, next) => __awaiter(void 0, void 0, void 0, function* () {
+const createBookingCheckout = (sessionData, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const courseId = (sessionData === null || sessionData === void 0 ? void 0 : sessionData.client_reference_id)
+            ? sessionData === null || sessionData === void 0 ? void 0 : sessionData.client_reference_id
+            : null;
+        if (!courseId) {
+            return next(new app_error_1.AppError("No course id provided", 400));
+        }
+        const userEmail = (sessionData === null || sessionData === void 0 ? void 0 : sessionData.customer_email)
+            ? sessionData === null || sessionData === void 0 ? void 0 : sessionData.customer_email
+            : null;
+        if (!userEmail) {
+            return next(new app_error_1.AppError("No user id provided", 400));
+        }
+        const user = yield users_model_1.UserModel.findOne({ email: userEmail });
+        if (!user) {
+            return next(new app_error_1.AppError("No user found with provided email", 400));
+        }
+        const userId = String(user._id);
+        const updatedCourse = yield courses_model_1.CourseModel.findByIdAndUpdate(courseId, { $addToSet: { students: userId } }, { returnDocument: "after", runValidators: true });
+        if (!updatedCourse) {
+            return next(new app_error_1.AppError("Error in updating course", 500));
+        }
+        // 4 : update the user
+        const updatedUser = yield users_model_1.UserModel.findByIdAndUpdate(userId, { $addToSet: { associatedCourses: updatedCourse._id } }, { returnDocument: "after", runValidators: true });
+        if (!updatedUser) {
+            return next(new app_error_1.AppError("Error in updating user", 500));
+        }
+    }
+    catch (err) {
+        return next(new app_error_1.AppError("An error occurred while buying course", 500));
+    }
+});
+const createWebhookCheckout = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const webhookSignature = req.headers["stripe-signature"];
+    let event;
+    try {
+        event = stripe_1.default.webhooks.constructEvent(req.body, webhookSignature, "whsec_BTjVgRkduSl7nyckDezQijic7khMCfq2");
+    }
+    catch (err) {
+        if (err instanceof Error) {
+            return res.status(400).send(`Webhook error: ${err.message}`);
+        }
+        return res.status(400).send(`Webhook error`);
+    }
+    if (event.type === "checkout.session.completed") {
+        const dataObj = {
+            client_reference_id: event.data.object.client_reference_id,
+            customer_email: event.data.object.customer_email,
+        };
+        yield createBookingCheckout(dataObj, next);
+    }
+    res.status(200).json({ received: true });
+});
+exports.createWebhookCheckout = createWebhookCheckout;
+const createStripeSession = (req, courseId, userId, next) => __awaiter(void 0, void 0, void 0, function* () {
     // 1 : get the course
-    const course = yield courses_model_1.CourseModel.findOne({ _id: courseId });
+    const course = yield courses_model_1.CourseModel.findById(new mongoose_1.default.Types.ObjectId(courseId));
     if (!course) {
         return next(new app_error_1.AppError("No course with provided id", 400));
     }
-    const user = yield users_model_1.UserModel.findOne({ _id: userId });
+    const user = yield users_model_1.UserModel.findById(new mongoose_1.default.Types.ObjectId(userId));
     if (!user) {
         return next(new app_error_1.AppError("No user for provided id", 400));
     }
     // 2 : create a stripe object
-    const stripe = new stripe_1.default(process.env.STRIPE_SEC_KEY, {
-        apiVersion: "2025-01-27.acacia",
-    });
+    const stripe = new stripe_1.default(process.env.STRIPE_SEC_KEY);
     if (!stripe) {
         return next(new app_error_1.AppError("Unable to create a stripe object", 500));
     }
     // 3 : create a session with that
     const stripeSession = yield stripe.checkout.sessions.create({
         payment_method_types: ["card"],
-        client_reference_id: String(user === null || user === void 0 ? void 0 : user.id),
+        client_reference_id: course === null || course === void 0 ? void 0 : course.id,
         customer_email: user === null || user === void 0 ? void 0 : user.email,
-        success_url: "https://www.wwe.com/",
+        success_url: `${req.protocol}://${req.get("host")}/`,
         line_items: [
             {
                 price_data: {
@@ -487,23 +540,9 @@ const buyCourse = (req, res, next) => __awaiter(void 0, void 0, void 0, function
             return next(new app_error_1.AppError("User id not found in request object", 500));
         }
         // 3 : create a session
-        const stripeSession = yield (0, exports.createStripeSession)(String(courseId), String(userId), next);
-        const updatedCourse = yield courses_model_1.CourseModel.findByIdAndUpdate(courseId, { $addToSet: { students: userId } }, { returnDocument: "after", runValidators: true });
-        if (!updatedCourse) {
-            return next(new app_error_1.AppError("Error in updating course", 500));
-        }
-        // 4 : update the user
-        const updatedUser = yield users_model_1.UserModel.findByIdAndUpdate(userId, { $addToSet: { associatedCourses: updatedCourse._id } }, { returnDocument: "after", runValidators: true });
-        if (!updatedUser) {
-            return next(new app_error_1.AppError("Error in updating user", 500));
-        }
+        const stripeSession = yield (0, exports.createStripeSession)(req, String(courseId), String(userId), next);
         res.status(200).json({
-            status: "success",
-            data: {
-                updatedCourse,
-                updatedUser,
-                stripeSession,
-            },
+            stripeSession,
         });
     }
     catch (err) {
