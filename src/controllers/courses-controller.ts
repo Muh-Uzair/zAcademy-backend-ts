@@ -711,9 +711,7 @@ export const createStripeSession = async (
   }
 
   // 2 : create a stripe object
-  const stripe = new Stripe(process.env.STRIPE_SEC_KEY as string, {
-    apiVersion: "2025-01-27.acacia",
-  });
+  const stripe = new Stripe(process.env.STRIPE_SEC_KEY as string);
 
   if (!stripe) {
     return next(new AppError("Unable to create a stripe object", 500));
