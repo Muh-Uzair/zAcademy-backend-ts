@@ -31,8 +31,7 @@
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.16",
     "sharp": "^0.33.5",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.7.2"
+    "ts-node": "^10.9.2"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -54,8 +53,8 @@
     "@types/nodemailer": "^6.4.17",
     "@types/sharp": "^0.31.1",
     "@types/stripe": "^8.0.416",
-    "globals": "^15.14.0",
-    "nodemon": "^3.1.9"
+    "nodemon": "^3.1.9",
+    "typescript": "^5.8.3"
   },
   "engines": {
     "node": "^20.0.0"
